@@ -12,8 +12,8 @@ yargs
             chart(argv);
         })
     .example('$0 create $(seq 1 20)', 'creates a bar chart with 20 memebers')
+    .example('$0 create $(seq 1 20) -c green', 'color bars green')
     .example('$0 create --ff example.json', 'creates a bar chart from a .json file')
-    .example('$0 create $(seq 1 20) -c green', 'creates a bar chart from a .json file')
     .option('label', { alias: 'l', type: 'string', desc: 'chart label' })
     .option('width', { alias: 'w', type: 'number', default: 100, desc: 'chart width' })
     .option('color', { alias: 'c', type: 'string', desc: 'color of chart bars' })
