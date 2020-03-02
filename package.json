@@ -1,7 +1,7 @@
 {
-  "name": "clider",
+  "name": "chartscii-cli",
   "version": "1.0.0",
-  "description": "cli template",
+  "description": "create bar charts in your terminal",
   "main": "index.js",
   "scripts": {
     "test": "echo 'set your tests here'",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tool3/clider.git"
+    "url": "git+https://github.com/tool3/chartscii-cli.git"
   },
   "keywords": [
     "cli",
@@ -20,9 +20,9 @@
   "author": "Tal Hayut",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/tool3/clider/issues"
+    "url": "https://github.com/tool3/chartscii-cli/issues"
   },
-  "homepage": "https://github.com/tool3/clider#readme",
+  "homepage": "https://github.com/tool3/chartscii-cli#readme",
   "dependencies": {
     "chartscii": "^1.0.16",
     "yargs": "^15.1.0"
