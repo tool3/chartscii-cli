@@ -1,4 +1,5 @@
 # chartscii cli
+ [![Build Status](https://travis-ci.org/tool3/chartscii-cli.svg?branch=master)](https://travis-ci.org/tool3/chartscii-cli)  ![lint](https://github.com/tool3/chartscii-cli/workflows/lint/badge.svg)   
 a companion cli for `chartscii`
 
 # install
