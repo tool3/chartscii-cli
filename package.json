@@ -1,6 +1,6 @@
 {
   "name": "chartscii-cli",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "create bar charts in your terminal",
   "main": "index.js",
   "scripts": {
