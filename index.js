@@ -17,6 +17,7 @@ yargs
     .option('label', { alias: 'l', type: 'string', desc: 'chart label' })
     .option('width', { alias: 'w', type: 'number', default: 100, desc: 'chart width' })
     .option('color', { alias: 'c', type: 'string', desc: 'color of chart bars' })
+    .option('sort', { alias: 's', type: 'boolean', desc: 'sort values' })
     .option('naked', { alias: 'n', type: 'boolean', default: false, desc: 'naked chart' })
     .option('color-labels', { alias: 'cl', type: 'boolean', default: false, desc: 'color labels' })
     .option('percentage', { alias: 'p', type: 'boolean', default: false, desc: 'show percentage data' })
