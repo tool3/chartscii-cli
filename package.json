@@ -4,7 +4,7 @@
   "description": "create bar charts in your terminal",
   "main": "index.js",
   "scripts": {
-    "test": "echo 'set your tests here'",
+    "test": "mocha tests/",
     "lint": "eslint ."
   },
   "repository": {
@@ -38,7 +38,8 @@
     "chai": "^4.2.0",
     "eslint": "^7.0.0",
     "husky": "^4.2.3",
-    "mocha": "^8.0.1"
+    "mocha": "^8.2.1",
+    "snaptdout": "^1.4.1"
   },
   "husky": {
     "hooks": {
