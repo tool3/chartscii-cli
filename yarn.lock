@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@applitools/snaptdout@^1.5.1":
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/@applitools/snaptdout/-/snaptdout-1.5.2.tgz#8d031fc43fdf75d897c78ea4e2161b985abb4109"
+  integrity sha512-7Yq0IJCdUpiUIDEbjXHi9h61IjS+/8zkoNjcy6yPrf2ebmUCg+d8CIPcJCHW/vlnCAnMvYyymhVRox5YEYHB+Q==
+
 "@babel/code-frame@^7.0.0":
   version "7.10.4"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.10.4.tgz#168da1a36e90da68ae8d49c0f1b48c7c6249213a"
@@ -1135,11 +1140,6 @@ slice-ansi@^2.1.0:
     ansi-styles "^3.2.0"
     astral-regex "^1.0.0"
     is-fullwidth-code-point "^2.0.0"
-
-snaptdout@^1.4.1:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/snaptdout/-/snaptdout-1.4.1.tgz#256bd44efbdffb603eceefb27e9beda926839c8d"
-  integrity sha512-DvEMgRvFbc9YowL0oci+XhjILOIiyI1OeYFPEoHUcjOFe/2UAoQtGEMM5fMCF4TQdDcJCXEuEtqC0aJZtQVoMA==
 
 sprintf-js@~1.0.2:
   version "1.0.3"
