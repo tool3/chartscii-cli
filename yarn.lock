@@ -3,9 +3,9 @@
 
 
 "@applitools/snaptdout@^1.5.1":
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/@applitools/snaptdout/-/snaptdout-1.5.2.tgz#8d031fc43fdf75d897c78ea4e2161b985abb4109"
-  integrity sha512-7Yq0IJCdUpiUIDEbjXHi9h61IjS+/8zkoNjcy6yPrf2ebmUCg+d8CIPcJCHW/vlnCAnMvYyymhVRox5YEYHB+Q==
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/@applitools/snaptdout/-/snaptdout-1.5.4.tgz#ddddc88121a18dd944bda7c60d732c0a0ac583ed"
+  integrity sha512-0mc0yDHIWucTOkxJOCQc+AcPj+kRnGDq7DUphBNACVw/ehNtwRahdLoFMqbdRH9PR5XGZSZQFJ/zPeMIsWQ2RA==
 
 "@babel/code-frame@^7.0.0":
   version "7.10.4"
