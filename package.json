@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/tool3/chartscii-cli#readme",
   "dependencies": {
-    "chartscii": "^1.0.16",
+    "chartscii": "latest",
     "yargs": "^16.0.3"
   },
   "bin": {
