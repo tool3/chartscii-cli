@@ -38,8 +38,7 @@
     "chai": "^4.2.0",
     "eslint": "^7.0.0",
     "husky": "^4.2.3",
-    "mocha": "^8.2.1",
-    "@applitools/snaptdout": "^1.5.1"
+    "mocha": "^8.2.1"
   },
   "husky": {
     "hooks": {
