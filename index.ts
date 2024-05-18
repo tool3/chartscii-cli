@@ -25,7 +25,7 @@ yargs
     .option('color', { alias: 'c', type: 'string', desc: 'color of chart bars', default: '' })
     .option('title', { alias: 't', type: 'string', desc: 'chart title', default: '' })
     .option('char', { alias: 'z', type: 'string', desc: 'ascii character for bars', default: '█' })
-    .option('fill', { alias: 'g', type: 'boolean', desc: 'fill bars with ascii character', default: false })
+    .option('fill', { alias: 'g', type: 'string', desc: 'fill bars with ascii character', default: false })
     .option('theme', { alias: 'k', type: 'string', desc: 'chart theme', default: '' })
     .option('max-value', { alias: 'm', type: 'number', desc: 'maximum value for scaling', default: 0 })
     .option('width', { alias: 'w', type: 'number', desc: 'chart width', default: 50 })

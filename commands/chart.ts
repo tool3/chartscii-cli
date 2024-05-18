@@ -1,6 +1,7 @@
 import Chartscii from 'chartscii';
 import { CustomizationOptions, InputData } from 'chartscii/dist/types/types';
 import fs from 'fs';
+import path from 'path';
 
 function structure(argv: any) {
     argv.structure = {};
@@ -54,7 +55,8 @@ function chart(argv: any) {
     structure(argv);
 
     if (argv.file) {
-        const file = fs.readFileSync(argv.file, 'utf8')
+        const filePath = path.resolve(argv.file);
+        const file = fs.readFileSync(filePath, 'utf8')
 
         const data = JSON.parse(file);
         const chart = getChart(data, argv);

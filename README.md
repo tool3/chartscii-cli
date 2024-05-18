@@ -8,6 +8,25 @@ npm i chartscii-cli -g
 
 # npx
 ```bash
+npx chartscii-cli create 1 2 3 4 5 6 7 8 9 10
+```
+1  ╢█████
+2  ╢██████████
+3  ╢███████████████
+4  ╢████████████████████
+5  ╢█████████████████████████
+6  ╢██████████████████████████████
+7  ╢███████████████████████████████████
+8  ╢████████████████████████████████████████
+9  ╢█████████████████████████████████████████████
+10 ╢██████████████████████████████████████████████████
+   ╚══════════════════════════════════════════════════
+```text
+
+```
+
+# npx
+```bash
 npx chartscii-cli create $(jot -r 10 1000 2000) -w 300
 ```
 ```text
@@ -30,7 +49,7 @@ see available chart options in [`chartscii`](https://github.com/tool3/chartscii#
 
 # example
 ```bash
-chartscii create --ff example.json -l 'Weekly coding stats' -f -p -w 65 -n
+chartscii create -f example.json -t 'Weekly coding stats' -o -n -g "░" -k pastel
 ```
 
 ```text
