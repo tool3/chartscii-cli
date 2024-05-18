@@ -1,10 +1,10 @@
 {
   "name": "chartscii-cli",
-  "version": "1.1.1",
+  "version": "3.0.0",
   "description": "create bar charts in your terminal",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
-    "test": "mocha tests/",
+    "build": "tsc",
     "lint": "eslint ."
   },
   "repository": {
@@ -24,21 +24,24 @@
   },
   "homepage": "https://github.com/tool3/chartscii-cli#readme",
   "dependencies": {
-    "chartscii": "latest",
+    "chartscii": "3.0.1",
     "yargs": "^16.0.3"
   },
   "bin": {
-    "chartscii": "./index.js"
+    "chartscii": "./dist/index.js"
   },
   "files": [
-    "index.js",
-    "commands"
+    "./dist"
   ],
   "devDependencies": {
+    "@types/node": "20.12.12",
+    "@types/yargs": "17.0.32",
     "chai": "^4.2.0",
     "eslint": "^7.0.0",
     "husky": "^4.2.3",
-    "mocha": "^8.2.1"
+    "mocha": "10.4.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.4.5"
   },
   "husky": {
     "hooks": {
