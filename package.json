@@ -4,8 +4,7 @@
   "description": "create bar charts in your terminal",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "lint": "eslint ."
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -13,7 +12,8 @@
   },
   "keywords": [
     "cli",
-    "template",
+    "ascii",
+    "charts",
     "npm",
     "nodejs"
   ],
@@ -38,14 +38,7 @@
     "@types/node": "20.12.12",
     "@types/yargs": "17.0.32",
     "chai": "^4.2.0",
-    "eslint": "^7.0.0",
-    "husky": "^4.2.3",
     "ts-node": "10.9.2",
     "typescript": "5.4.5"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint"
-    }
   }
 }
