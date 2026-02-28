@@ -1,19 +1,36 @@
 {
   "name": "chartscii-cli",
-  "version": "3.0.0",
-  "description": "create bar charts in your terminal",
-  "main": "./dist/index.js",
+  "version": "4.0.0",
+  "description": "Transform data into beautiful terminal charts. Simple, fast, and powerful.",
+  "main": "./dist/cli.js",
+  "types": "./dist/cli.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "mocha",
+    "test:watch": "mocha --watch",
+    "pretest": "npm run build",
+    "prepublishOnly": "npm run build && npm test"
   },
+  "bin": {
+    "chartscii": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tool3/chartscii-cli.git"
   },
   "keywords": [
     "cli",
+    "chart",
     "ascii",
-    "charts",
+    "terminal",
+    "visualization",
+    "data",
+    "graph",
+    "bar-chart",
     "npm",
     "nodejs"
   ],
@@ -23,20 +40,20 @@
     "url": "https://github.com/tool3/chartscii-cli/issues"
   },
   "homepage": "https://github.com/tool3/chartscii-cli#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "chartscii": "^3.0.1",
     "yargs": "^16.0.3"
   },
-  "bin": {
-    "chartscii": "./dist/index.js"
-  },
-  "files": [
-    "./dist"
-  ],
   "devDependencies": {
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
     "@types/node": "20.12.12",
     "@types/yargs": "17.0.32",
-    "chai": "^4.2.0",
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0",
     "ts-node": "10.9.2",
     "typescript": "5.4.5"
   }

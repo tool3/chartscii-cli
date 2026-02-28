@@ -1,0 +1,19 @@
+import { CustomizationOptions, InputData } from 'chartscii/dist/types/types';
+
+export interface CLIOptions extends CustomizationOptions {
+  file?: string;
+  _?: Array<string | number>;
+  $0?: string;
+}
+
+export interface InputSource {
+  type: 'stdin' | 'file' | 'args';
+  data: string | string[];
+}
+
+export interface ParsedInput {
+  data: InputData[];
+  options: CustomizationOptions;
+}
+
+export { InputData, CustomizationOptions };
