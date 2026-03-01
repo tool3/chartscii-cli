@@ -2,7 +2,13 @@
   {
     "label": "Global colors only",
     "value": [100, 50, 30],
+    "color": "cyan",
     "comment": "Uses stackColors from CLI: -I red green blue"
+  },
+  {
+    "label": "Single value",
+    "value": 50,
+    "color": "green"
   },
   {
     "label": "Per-bar array (full)",
@@ -17,6 +23,7 @@
   },
   {
     "label": "Per-segment objects",
+    "color": "purple",
     "value": [
       { "value": 80, "color": "pink" },
       { "value": 60 },

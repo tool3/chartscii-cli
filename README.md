@@ -163,6 +163,12 @@ chartscii examples/example-stacked.json -J Frontend Backend DevOps -I red green 
 
 # Fill with color (v4) - using short alias
 echo "10 20 30" | chartscii -f "." -G blue -t "Colored Fill"
+
+# Full terminal width (v4)
+du -sh */ | chartscii -w auto -c auto -t "Full Width Chart"
+
+# Auto width and height
+seq 1 20 | chartscii -w auto -h auto -c auto -o vertical -t "Full Terminal"
 ```
 
 ## Complete Options Reference
@@ -184,8 +190,8 @@ echo "10 20 30" | chartscii -f "." -G blue -t "Colored Fill"
 | Short | Long | Type | Default | Description |
 |-------|------|------|---------|-------------|
 | `-o` | `--orientation` | string | 'horizontal' | Chart orientation (horizontal, vertical) |
-| `-w` | `--width` | number | 80 | Chart width |
-| `-h` | `--height` | number | 20 | Chart height |
+| `-w` | `--width` | number/string | 80 | Chart width (number or **`auto`** for terminal width) |
+| `-h` | `--height` | number/string | 20 | Chart height (number or **`auto`** for terminal height) |
 | `-b` | `--bar-size` | number | 1 | Bar size (thickness) |
 | `-d` | `--padding` | number | 1 | Padding between bars |
 
@@ -389,6 +395,11 @@ These can be combined for maximum flexibility. Segments without specific colors 
 ### Advanced Styling (v4)
 
 ```bash
+# Auto-sizing to terminal dimensions
+chartscii data.json -w auto -t "Full Terminal Width"
+chartscii 10 20 30 -w auto -h auto -o vertical -t "Full Terminal"
+du -sh */ | chartscii -w auto -c auto -t "Full Width Dashboard"
+
 # Colored fill character (long and short)
 chartscii 10 20 30 -f "." --fill-color blue -t "Blue Fill"
 chartscii 10 20 30 -f "." -G cyan -t "Cyan Fill"
@@ -506,11 +517,11 @@ chartscii data.csv -c auto -f "░" -v -P '$' -V 0 -p -k pastel -t "Sales Report
 ### DevOps & Monitoring
 
 ```bash
-# Disk usage by directory
-du -sh */ | chartscii -c auto -t "Directory Sizes"
+# Disk usage by directory (full terminal width)
+du -sh */ | chartscii -w auto -c auto -t "Directory Sizes"
 
 # Docker container stats (if Docker installed)
-docker stats --no-stream --format "{{.Name}} {{.MemPerc}}" | chartscii -t "Container Memory"
+docker stats --no-stream --format "{{.Name}} {{.MemPerc}}" | chartscii -w auto -t "Container Memory"
 
 # Kubernetes pod CPU (if kubectl available)
 kubectl top pods | awk 'NR>1 {print $1" "$2}' | chartscii -c auto -t "Pod CPU"

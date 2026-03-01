@@ -92,14 +92,22 @@ function createParser() {
     })
     .option('width', {
       alias: 'w',
-      type: 'number',
-      description: 'Chart width',
+      description: 'Chart width (number or "auto" for terminal width)',
+      coerce: (value: any) => {
+        if (value === 'auto') return 'auto';
+        const num = Number(value);
+        return isNaN(num) ? 80 : num;
+      },
       default: 80
     })
     .option('height', {
       alias: 'h',
-      type: 'number',
-      description: 'Chart height',
+      description: 'Chart height (number or "auto" for terminal height)',
+      coerce: (value: any) => {
+        if (value === 'auto') return 'auto';
+        const num = Number(value);
+        return isNaN(num) ? 20 : num;
+      },
       default: 20
     })
     .option('bar-size', {

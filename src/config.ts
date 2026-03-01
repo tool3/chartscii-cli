@@ -37,6 +37,14 @@ export function buildOptions(options: Partial<CustomizationOptions>): Customizat
   const clean = cleanYargsOptions(options);
   const defaults = getDefaults();
 
+  // Handle auto width/height
+  if ((clean as any).width === 'auto') {
+    clean.width = process.stdout.columns || 80;
+  }
+  if ((clean as any).height === 'auto') {
+    clean.height = process.stdout.rows || 20;
+  }
+
   // Save structure for special handling
   const newStructure = clean.structure;
   delete clean.structure;
