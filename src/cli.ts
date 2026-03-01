@@ -140,9 +140,15 @@ function createParser() {
     })
     .option('fill', {
       alias: 'g',
-      type: 'string',
-      description: 'Fill character for empty space',
-      default: ''
+      description: 'Fill character for empty space (default: ▒)',
+      coerce: (value: any) => {
+        // If flag used without value, yargs passes true
+        if (value === true) return '▒';
+        // If value provided, use it
+        if (typeof value === 'string') return value;
+        // Otherwise undefined (no flag)
+        return undefined;
+      }
     })
 
     // Data options

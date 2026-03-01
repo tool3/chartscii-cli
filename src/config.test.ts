@@ -13,6 +13,7 @@ describe('config', () => {
       expect(defaults.colorLabels).to.be.true;
       expect(defaults.sort).to.be.true;
       expect(defaults.char).to.equal('█');
+      expect(defaults.fill).to.equal('▒');
     });
 
     it('should include structure defaults', () => {

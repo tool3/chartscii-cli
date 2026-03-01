@@ -72,6 +72,12 @@ function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
   delete clean.help;
   delete clean.version;
 
+  // Remove empty strings to allow defaults to kick in
+  // Note: fill is handled by coerce in cli.ts, so we don't delete it here
+  if (clean.color === '') delete clean.color;
+  if (clean.theme === '') delete clean.theme;
+  if (clean.title === '') delete clean.title;
+
   // Map kebab-case to camelCase
   if (clean['color-labels'] !== undefined) {
     clean.colorLabels = clean['color-labels'];
