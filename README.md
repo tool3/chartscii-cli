@@ -10,15 +10,11 @@
 
 </div>
 
+```bash
+chartscii data.csv -c auto
 ```
-JavaScript (68.3%)  ████████████████████████████████████████████
-  Markdown (11.8%)  ████████
-TypeScript  (5.7%)  ████
-       HTML (5.3%)  ███
-       YAML (4.7%)  ███
-       JSON (0.8%)  █
-       Bash (3.3%)  ██
-```
+![csv](examples/csv.svg)
+
 
 ## Why chartscii?
 
@@ -49,7 +45,7 @@ echo "1 2 3 4 5" | chartscii
 seq 1 20 | chartscii
 
 # With options
-chartscii 1 2 3 -c green -t "Sales" -o
+chartscii 1 2 3 -c green -t "Sales" -p
 ```
 
 ## Examples
@@ -59,19 +55,17 @@ chartscii 1 2 3 -c green -t "Sales" -o
 chartscii 5 10 15 20 25
 ```
 ```
-5  ╢████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-10 ╢████████████████████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-15 ╢████████████████████████████████████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-20 ╢████████████████████████████████████████████████████████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+5  ╢████████████████
+10 ╢████████████████████████████████
+15 ╢████████████████████████████████████████████████
+20 ╢████████████████████████████████████████████████████████████████
 25 ╢████████████████████████████████████████████████████████████████████████████████
    ╚════════════════════════════════════════════════════════════════════════════════
 ```
 
-**Note:** Charts now include fill characters (▒) by default to better visualize proportions.
-
 ### Vertical Chart
 ```bash
-chartscii 1 2 3 4 5 -e vertical -h 10
+chartscii 1 2 3 4 5 -o vertical -h 10
 ```
 ```
 ║        █
@@ -90,7 +84,7 @@ chartscii 1 2 3 4 5 -e vertical -h 10
 
 ### From CSV
 ```bash
-chartscii data.csv -o -t "Programming Languages"
+chartscii data.csv -p -t "Programming Languages"
 ```
 
 **data.csv**:
@@ -103,16 +97,18 @@ Python,43
 **Output**:
 ```
 Programming Languages
-  Python (14.48%)  ██████████████████████████████████████
-TypeScript (18.86%)  ██████████████████████████████████████████████████
-JavaScript (22.90%)  ████████████████████████████████████████████████████████████
-                     ╚════════════════════════════════════════════════════════════
+Python (25.75%)     ╢███████████████████████████████████████████████████
+                    ║
+TypeScript (33.53%) ╢██████████████████████████████████████████████████████████████████
+                    ║
+JavaScript (40.72%) ╢████████████████████████████████████████████████████████████████████████████████
+                    ╚════════════════════════════════════════════════════════════════════════════════
 ```
 
 ### Piped Input
 ```bash
 # From command output
-du -sh * | awk '{print $1}' | chartscii -c blue
+du -sh * | chartscii -c auto -t "Disk Usage"
 
 # From a log file
 cat server.log | grep "response_time" | cut -d: -f2 | chartscii -t "Response Times"
@@ -124,9 +120,29 @@ git log --author="$(git config user.name)" --format=%ad --date=short | \
 
 ### With Themes and Colors
 ```bash
-chartscii data.json -k pastel -o -w 100
-chartscii 10 20 30 -c "#FF5733" -g "░"
-chartscii 1 2 3 4 5 -n  # Naked mode (no borders)
+# List all available themes
+chartscii --list-themes
+
+# Use a theme
+chartscii data.json -k pastel -p -w 100           # Theme with percentages
+chartscii 10 20 30 40 50 -k neon -c auto          # Neon theme with auto colors
+chartscii 10 20 30 -c "#FF5733" --fill            # Hex color with fill
+chartscii 10 20 30 -c green -f "░"                # Custom fill character
+chartscii 1 2 3 4 5 -n                            # Naked mode (no borders)
+```
+
+**Available themes:** default, pastel, lush, standard, beach, nature, neon, spring, pinkish, crayons, sunset, rufus, summer, autumn, mint, vintage, sport, rainbow, pool, champagne
+
+### Advanced Features
+```bash
+# Value labels with custom prefix
+chartscii 100 250 500 1000 -v --value-labels-prefix '$' --value-labels-floating-point 0
+
+# Custom scale
+chartscii 10 20 30 --scale 100 -t "Progress"
+
+# Combine multiple options
+du -sh * | chartscii -c auto -v -p -t "Disk Usage Report"
 ```
 
 ## Usage
@@ -138,8 +154,7 @@ chartscii [data...] [options]
 ### Data Sources
 
 - **Direct numbers**: `chartscii 1 2 3 4 5`
-- **File path**: `chartscii data.csv` or `chartscii data.json`
-- **Explicit file**: `chartscii -f data.json`
+- **File path**: `chartscii data.csv` or `chartscii data.json` (auto-detected)
 - **Stdin**: `echo "1 2 3" | chartscii`
 
 ### Input Formats
@@ -174,26 +189,33 @@ Or simple:
 ### Display
 - `-t, --title <string>` - Chart title
 - `-l, --labels` - Show labels (default: true)
-- `-d, --color-labels` - Color labels (default: true)
-- `-o, --percentage` - Show percentages
+- `-L, --color-labels` - Color labels
+- `-p, --percentage` - Show percentages
+- `-v, --value-labels` - Display value labels on bars
+- `--value-labels-prefix <string>` - Prefix for value labels (e.g., "$", "€")
+- `--value-labels-floating-point <number>` - Decimal places for value labels (default: 2)
 
 ### Layout
-- `-e, --orientation <horizontal|vertical>` - Chart orientation
+- `-o, --orientation <horizontal|vertical>` - Chart orientation
 - `-w, --width <number>` - Chart width (default: 80)
 - `-h, --height <number>` - Chart height (default: 20)
-- `-p, --padding <number>` - Bar padding (default: 1)
+- `-d, --padding <number>` - Bar padding (default: 1)
 - `-b, --bar-size <number>` - Bar thickness
 
 ### Styling
-- `-c, --color <string>` - Bar color (name, hex, or ANSI)
+- `-c, --color <string>` - Bar color (name, hex, ANSI, or `auto` for cycling colors)
 - `-k, --theme <string>` - Color theme
 - `-z, --char <string>` - Bar character (default: █)
-- `-g, --fill <string>` - Fill character (default: ▒)
+- `-f, --fill [char]` - Fill character for empty space (opt-in, default: ▒ when flag is used)
+- `--scale <auto|number>` - Scale mode: auto or max value (default: auto)
 
 ### Data
 - `-s, --sort` - Sort data (default: true)
 - `-r, --reverse` - Reverse order
 - `-n, --naked` - No borders
+
+### Utility
+- `--list-themes` - List all available color themes
 
 ## Real-World Use Cases
 
@@ -221,10 +243,10 @@ git diff --stat | head -n -1 | chartscii -c green
 ### Data Analysis
 ```bash
 # CSV analysis
-cat sales.csv | cut -d, -f2 | chartscii -o -t "Sales Distribution"
+cat sales.csv | cut -d, -f2 | chartscii -p -t "Sales Distribution"
 
 # JSON processing
-cat api-response.json | jq '.data[].value' | chartscii -e vertical
+cat api-response.json | jq '.data[].value' | chartscii -o vertical
 ```
 
 ### CI/CD Integration
@@ -264,8 +286,8 @@ chartscii data1.csv data2.json
 ```bash
 # Add to .bashrc or .zshrc
 alias chart="chartscii"
-alias vchart="chartscii -e vertical"
-alias pchart="chartscii -o"  # with percentages
+alias vchart="chartscii -o vertical"
+alias pchart="chartscii -p"  # with percentages
 ```
 
 ### Watch Mode
@@ -285,19 +307,19 @@ tmux split-window "watch -n 5 'chartscii data.csv'"
 
 ## Performance
 
-- **Fast startup** - < 100ms
+- **Ultra fast** - < 100ms
 - **Efficient parsing** - Handles large datasets
 - **Minimal dependencies** - Small install size
 - **Memory efficient** - Streams large files
 
 ## Why Terminal Charts?
 
-✅ **Universal** - Works on any system with a terminal
-✅ **Scriptable** - Easy to automate and integrate
-✅ **SSH-friendly** - Visualize data on remote servers
-✅ **CI/CD ready** - Perfect for build pipelines
-✅ **No browser needed** - Lightweight and fast
-✅ **Git-friendly** - Text-based, version controllable
+✅ **Universal** - Works on any system with a terminal.  
+✅ **Scriptable** - Easy to automate and integrate.  
+✅ **SSH-friendly** - Visualize data on remote servers.  
+✅ **CI/CD ready** - Perfect for build pipelines.  
+✅ **No browser needed** - Lightweight and fast.  
+✅ **Git-friendly** - Text-based, version controllable.  
 
 ## API
 

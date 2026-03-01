@@ -5,12 +5,41 @@ import * as reader from './reader';
 import * as config from './config';
 
 /**
+ * Available colors for auto-cycling
+ */
+const AUTO_COLORS = [
+  'red',
+  'green',
+  'yellow',
+  'blue',
+  'purple',
+  'cyan',
+  'pink',
+  'orange',
+  'marine'
+];
+
+/**
+ * Apply auto colors to data items in cycling order
+ */
+function applyAutoColors(data: InputData[]): InputData[] {
+  return data.map((item, index) => {
+    const color = AUTO_COLORS[index % AUTO_COLORS.length];
+
+    if (typeof item === 'number') {
+      return { value: item, color };
+    }
+
+    return { ...item, color };
+  });
+}
+
+/**
  * Generate chart from command line arguments and options
  */
 export async function generate(args: Array<string | number>, options: Partial<CustomizationOptions> = {}): Promise<string> {
-  // Get input source
-  const fileOption = (options as any).file || (options as any).f;
-  const inputSource = await reader.getInputSource(args, fileOption);
+  // Get input source (file detection is automatic in reader.getInputSource via cli.ts)
+  const inputSource = await reader.getInputSource(args);
 
   // Parse input data
   let data: InputData[];
@@ -23,6 +52,13 @@ export async function generate(args: Array<string | number>, options: Partial<Cu
 
   if (data.length === 0) {
     throw new Error('No valid data to chart');
+  }
+
+  // Handle auto color cycling
+  if (options.color === 'auto') {
+    data = applyAutoColors(data);
+    // Remove the global color option so each item uses its own color
+    delete options.color;
   }
 
   // Build configuration

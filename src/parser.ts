@@ -52,9 +52,57 @@ export function parseJSON(content: string): InputData[] {
  * Parse plain text with numbers
  */
 export function parseText(content: string): InputData[] {
-  return content
-    .trim()
-    .split(/\s+/)
+  const trimmed = content.trim();
+
+  // If content has newlines, check each line
+  if (trimmed.includes('\n') || trimmed.includes('\r')) {
+    const lines = trimmed
+      .split(/[\n\r]+/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
+    // Check if lines contain only pure numbers (space-separated)
+    const allLinesArePureNumbers = lines.every(line => {
+      const tokens = line.split(/\s+/);
+      return tokens.every(token => parseNumber(token) !== null);
+    });
+
+    if (allLinesArePureNumbers) {
+      // Split all by whitespace and return pure numbers
+      return trimmed
+        .split(/\s+/)
+        .map(parseNumber)
+        .filter(n => n !== null) as number[];
+    }
+
+    // Check if lines follow "number string" or "string number" pattern
+    const parsedLines = lines
+      .map(parseNumberLabelLine)
+      .filter(item => item !== null) as InputData[];
+
+    if (parsedLines.length > 0) {
+      return parsedLines;
+    }
+
+    // Otherwise, extract numbers with labels from each line (fallback)
+    return lines
+      .map(extractNumberFromString)
+      .filter(item => item !== null) as InputData[];
+  }
+
+  // Single line: check if it contains non-numeric strings
+  const tokens = trimmed.split(/\s+/);
+  const hasNonNumeric = tokens.some(token => parseNumber(token) === null);
+
+  if (hasNonNumeric) {
+    // Extract numbers and ignore non-numeric tokens
+    return tokens
+      .map(parseNumber)
+      .filter(n => n !== null) as number[];
+  }
+
+  // Pure numbers
+  return tokens
     .map(parseNumber)
     .filter(n => n !== null) as number[];
 }
@@ -159,4 +207,117 @@ function parseObjectNotation(str: string): InputData | null {
 function parseNumber(str: string): number | null {
   const num = Number(str);
   return isNaN(num) ? null : num;
+}
+
+/**
+ * Parse a line that contains a number and label separated by whitespace
+ * Handles both "number label" and "label number" formats
+ * Also handles size suffixes like "8.0K filename"
+ */
+function parseNumberLabelLine(line: string): InputData | null {
+  const tokens = line.split(/\s+/);
+
+  if (tokens.length < 2) {
+    return null;
+  }
+
+  // Try "number label" format (e.g., "8.0K CONTRIBUTING.md")
+  const firstToken = tokens[0];
+  const restAsLabel = tokens.slice(1).join(' ');
+
+  // Check for size suffix first
+  const sizeMatch = firstToken.match(/^([\d.]+)([KMGT])$/i);
+  if (sizeMatch) {
+    const baseValue = parseFloat(sizeMatch[1]);
+    const suffix = sizeMatch[2].toUpperCase();
+
+    const multipliers: { [key: string]: number } = {
+      'K': 1024,
+      'M': 1024 * 1024,
+      'G': 1024 * 1024 * 1024,
+      'T': 1024 * 1024 * 1024 * 1024
+    };
+
+    const value = baseValue * multipliers[suffix];
+    return { label: restAsLabel, value };
+  }
+
+  // Try plain number
+  const firstNum = parseNumber(firstToken);
+  if (firstNum !== null) {
+    return { label: restAsLabel, value: firstNum };
+  }
+
+  // Try "label number" format (e.g., "CONTRIBUTING.md 8.0K")
+  const lastToken = tokens[tokens.length - 1];
+  const restAsLabelReverse = tokens.slice(0, -1).join(' ');
+
+  // Check for size suffix
+  const sizeMatchLast = lastToken.match(/^([\d.]+)([KMGT])$/i);
+  if (sizeMatchLast) {
+    const baseValue = parseFloat(sizeMatchLast[1]);
+    const suffix = sizeMatchLast[2].toUpperCase();
+
+    const multipliers: { [key: string]: number } = {
+      'K': 1024,
+      'M': 1024 * 1024,
+      'G': 1024 * 1024 * 1024,
+      'T': 1024 * 1024 * 1024 * 1024
+    };
+
+    const value = baseValue * multipliers[suffix];
+    return { label: restAsLabelReverse, value };
+  }
+
+  // Try plain number
+  const lastNum = parseNumber(lastToken);
+  if (lastNum !== null) {
+    return { label: restAsLabelReverse, value: lastNum };
+  }
+
+  return null;
+}
+
+/**
+ * Extract number from a string that may contain non-numeric characters
+ * Returns an InputData object with the original string as label and extracted number as value
+ */
+function extractNumberFromString(str: string): InputData | null {
+  // Try direct number conversion first (for pure numeric strings)
+  const directNum = parseNumber(str);
+  if (directNum !== null) {
+    return directNum;
+  }
+
+  // Check for size suffixes (e.g., 8.0K, 44M, 1.2G, 5.3T)
+  const sizeMatch = str.match(/^([\d.]+)([KMGT])$/i);
+  if (sizeMatch) {
+    const baseValue = parseFloat(sizeMatch[1]);
+    const suffix = sizeMatch[2].toUpperCase();
+
+    const multipliers: { [key: string]: number } = {
+      'K': 1024,
+      'M': 1024 * 1024,
+      'G': 1024 * 1024 * 1024,
+      'T': 1024 * 1024 * 1024 * 1024
+    };
+
+    const value = baseValue * multipliers[suffix];
+    return { label: str, value };
+  }
+
+  // Extract any numeric value from the string (including decimals and commas)
+  // This handles cases like: "test123", "$1,500", "Price: 99.99", etc.
+  const numberMatch = str.match(/([\d,]+\.?\d*|\d*\.[\d,]+)/);
+  if (numberMatch) {
+    // Remove commas and parse
+    const cleanNum = numberMatch[1].replace(/,/g, '');
+    const value = parseFloat(cleanNum);
+    if (!isNaN(value)) {
+      // Return object with original string as label and extracted number as value
+      return { label: str, value };
+    }
+  }
+
+  return null;
 }

@@ -48,8 +48,8 @@ export function readFile(filePath: string): string {
 /**
  * Determine input source and read data
  */
-export async function getInputSource(args: Array<string | number>, fileOption?: string): Promise<InputSource> {
-  // Priority 1: Command line arguments
+export async function getInputSource(args: Array<string | number>): Promise<InputSource> {
+  // Priority 1: Command line arguments (including files detected in cli.ts)
   if (args && args.length > 0) {
     return {
       type: 'args',
@@ -57,15 +57,7 @@ export async function getInputSource(args: Array<string | number>, fileOption?: 
     };
   }
 
-  // Priority 2: File option
-  if (fileOption) {
-    return {
-      type: 'file',
-      data: readFile(fileOption)
-    };
-  }
-
-  // Priority 3: stdin
+  // Priority 2: stdin
   if (hasStdin()) {
     return {
       type: 'stdin',
@@ -73,5 +65,5 @@ export async function getInputSource(args: Array<string | number>, fileOption?: 
     };
   }
 
-  throw new Error('No input provided. Use: chartscii <data> or chartscii -f file.json or echo data | chartscii');
+  throw new Error('No input provided. Use: chartscii <data> or chartscii data.json or echo data | chartscii');
 }

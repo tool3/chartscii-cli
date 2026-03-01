@@ -1,7 +1,6 @@
 import { CustomizationOptions, InputData } from 'chartscii/dist/types/types';
 
 export interface CLIOptions extends CustomizationOptions {
-  file?: string;
   _?: Array<string | number>;
   $0?: string;
 }

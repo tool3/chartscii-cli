@@ -13,7 +13,8 @@ describe('config', () => {
       expect(defaults.colorLabels).to.be.true;
       expect(defaults.sort).to.be.true;
       expect(defaults.char).to.equal('█');
-      expect(defaults.fill).to.equal('▒');
+      // fill is opt-in, not a default
+      expect(defaults.fill).to.be.undefined;
     });
 
     it('should include structure defaults', () => {
@@ -53,14 +54,12 @@ describe('config', () => {
       const opts = config.buildOptions({
         _: [1, 2, 3],
         $0: 'chartscii',
-        file: 'test.json',
         'color-labels': false,
         'bar-size': 2
       } as any);
 
       expect(opts).to.not.have.property('_');
       expect(opts).to.not.have.property('$0');
-      expect(opts).to.not.have.property('file');
       expect(opts.colorLabels).to.be.false;
       expect(opts.barSize).to.equal(2);
     });

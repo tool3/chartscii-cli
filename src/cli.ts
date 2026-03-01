@@ -3,7 +3,11 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import fs from 'fs';
+import Chartscii from 'chartscii';
 import * as generator from './generator';
+import * as dataParser from './parser';
+import * as configBuilder from './config';
+import * as reader from './reader';
 import { CLIOptions } from './types';
 
 /**
@@ -15,24 +19,6 @@ function isFilePath(arg: string): boolean {
   } catch {
     return false;
   }
-}
-
-/**
- * Separate file paths from data arguments
- */
-function separateArgs(args: Array<string | number>): { files: string[], data: Array<string | number> } {
-  const files: string[] = [];
-  const data: Array<string | number> = [];
-
-  for (const arg of args) {
-    if (typeof arg === 'string' && isFilePath(arg)) {
-      files.push(arg);
-    } else {
-      data.push(arg);
-    }
-  }
-
-  return { files, data };
 }
 
 /**
@@ -48,17 +34,9 @@ function createParser() {
     .example('cat data.txt | $0', 'Create chart from pipe')
     .example('$0 data.json', 'Create chart from JSON file')
     .example('$0 data.csv', 'Create chart from CSV file')
-    .example('$0 -f data.json', 'Create chart from file (explicit)')
+    .example('du -sh * | $0', 'Create chart from command output')
     .example('$0 1 2 3 -c green -t "My Chart"', 'Chart with options')
-    .example('$0 1 2 3 -e vertical -w 50', 'Vertical chart')
-
-    // Input options
-    .option('file', {
-      alias: 'f',
-      type: 'string',
-      description: 'Read chart data from file (JSON or CSV)',
-      requiresArg: true
-    })
+    .example('$0 1 2 3 -f -o vertical', 'Vertical chart with fill')
 
     // Display options
     .option('title', {
@@ -74,21 +52,39 @@ function createParser() {
       default: true
     })
     .option('color-labels', {
-      alias: 'd',
+      alias: 'C',
       type: 'boolean',
       description: 'Color labels',
       default: true
     })
     .option('percentage', {
-      alias: 'o',
+      alias: 'p',
       type: 'boolean',
       description: 'Display percentages',
       default: false
     })
+    .option('value-labels', {
+      alias: 'v',
+      type: 'boolean',
+      description: 'Display value labels on bars',
+      default: false
+    })
+    .option('value-labels-prefix', {
+      type: 'string',
+      alias: 'P',
+      description: 'Prefix for value labels (e.g., "$")',
+      default: ''
+    })
+    .option('value-labels-floating-point', {
+      type: 'number',
+      alias: 'V',
+      description: 'Decimal places for value labels',
+      default: 2
+    })
 
     // Layout options
     .option('orientation', {
-      alias: 'e',
+      alias: 'o',
       type: 'string',
       description: 'Chart orientation',
       choices: ['horizontal', 'vertical'],
@@ -113,7 +109,7 @@ function createParser() {
       default: 1
     })
     .option('padding', {
-      alias: 'p',
+      alias: 'd',
       type: 'number',
       description: 'Padding between bars',
       default: 1
@@ -123,7 +119,7 @@ function createParser() {
     .option('color', {
       alias: 'c',
       type: 'string',
-      description: 'Bar color (named, hex, or ANSI)',
+      description: 'Bar color (named, hex, ANSI, or "auto" for cycling colors)',
       default: ''
     })
     .option('theme', {
@@ -139,7 +135,7 @@ function createParser() {
       default: '█'
     })
     .option('fill', {
-      alias: 'g',
+      alias: 'f',
       description: 'Fill character for empty space (default: ▒)',
       coerce: (value: any) => {
         // If flag used without value, yargs passes true
@@ -149,6 +145,11 @@ function createParser() {
         // Otherwise undefined (no flag)
         return undefined;
       }
+    })
+    .option('scale', {
+      type: 'string',
+      description: 'Scale mode (auto or number for max value)',
+      default: 'auto'
     })
 
     // Data options
@@ -197,6 +198,13 @@ function createParser() {
       default: '╚'
     })
 
+    // Utility options
+    .option('list-themes', {
+      type: 'boolean',
+      description: 'List all available color themes',
+      default: false
+    })
+
     // Help
     .help('help')
     .alias('help', '?')
@@ -210,18 +218,60 @@ function createParser() {
 async function run() {
   const parser = createParser();
   const argv = parser.argv as unknown as CLIOptions;
-  const args = argv._ || [];
+  let args = argv._ || [];
 
-  // Separate files from data
-  const { files, data } = separateArgs(args);
+  // Handle --list-themes flag
+  if ((argv as any).listThemes) {
+    const themes = [
+      'default', 'pastel', 'lush', 'standard', 'beach', 'nature', 'neon',
+      'spring', 'pinkish', 'crayons', 'sunset', 'rufus', 'summer', 'autumn',
+      'mint', 'vintage', 'sport', 'rainbow', 'pool', 'champagne'
+    ];
 
-  // If files detected, use the first one
-  if (files.length > 0 && !argv.file) {
-    argv.file = files[0];
+    console.log('\nAvailable themes:\n');
+    themes.forEach(theme => {
+      console.log(`  - ${theme}`);
+    });
+    console.log('\nUsage: chartscii data.json -k <theme-name>\n');
+    process.exit(0);
+  }
+
+  // If first argument is a file, read it and pass as stdin-like data
+  if (args.length === 1 && typeof args[0] === 'string' && isFilePath(args[0])) {
+    const filePath = args[0];
+    const fileContent = reader.readFile(filePath);
+
+    try {
+      // Parse file content directly
+      const parsedData = dataParser.parse(fileContent);
+
+      // Handle auto color cycling
+      let data: any = parsedData;
+      if (argv.color === 'auto') {
+        const AUTO_COLORS = ['red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'pink', 'orange', 'marine'];
+        data = parsedData.map((item: any, index: number) => {
+          const color = AUTO_COLORS[index % AUTO_COLORS.length];
+          if (typeof item === 'number') {
+            return { value: item, color };
+          }
+          return { ...item, color };
+        });
+        delete argv.color;
+      }
+
+      const chartConfig = configBuilder.buildOptions(argv);
+      const chart = new Chartscii(data, chartConfig);
+      console.log(chart.create());
+      return;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Error: ${message}`);
+      process.exit(1);
+    }
   }
 
   try {
-    const chart = await generator.generate(data, argv);
+    const chart = await generator.generate(args, argv);
     console.log(chart);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

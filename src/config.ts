@@ -67,8 +67,6 @@ function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
   // Remove yargs internals
   delete clean._;
   delete clean.$0;
-  delete clean.file;
-  delete clean.f;
   delete clean.help;
   delete clean.version;
 
@@ -82,6 +80,21 @@ function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
   if (clean['color-labels'] !== undefined) {
     clean.colorLabels = clean['color-labels'];
     delete clean['color-labels'];
+  }
+
+  if (clean['value-labels'] !== undefined) {
+    clean.valueLabels = clean['value-labels'];
+    delete clean['value-labels'];
+  }
+
+  if (clean['value-labels-prefix'] !== undefined) {
+    clean.valueLabelsPrefix = clean['value-labels-prefix'];
+    delete clean['value-labels-prefix'];
+  }
+
+  if (clean['value-labels-floating-point'] !== undefined) {
+    clean.valueLabelsFloatingPoint = clean['value-labels-floating-point'];
+    delete clean['value-labels-floating-point'];
   }
 
   if (clean['max-value'] !== undefined) {
