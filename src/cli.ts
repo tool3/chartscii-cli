@@ -202,22 +202,30 @@ function createParser() {
  * Main execution
  */
 async function run() {
+  const parser = createParser();
+  const argv = parser.argv as unknown as CLIOptions;
+  const args = argv._ || [];
+
+  // Separate files from data
+  const { files, data } = separateArgs(args);
+
+  // If files detected, use the first one
+  if (files.length > 0 && !argv.file) {
+    argv.file = files[0];
+  }
+
   try {
-    const argv = createParser().argv as unknown as CLIOptions;
-    const args = argv._ || [];
-
-    // Separate files from data
-    const { files, data } = separateArgs(args);
-
-    // If files detected, use the first one
-    if (files.length > 0 && !argv.file) {
-      argv.file = files[0];
-    }
-
     const chart = await generator.generate(data, argv);
     console.log(chart);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+
+    // If no input was provided, show help instead of error
+    if (message.includes('No input provided') || message.includes('Empty input')) {
+      parser.showHelp();
+      process.exit(0);
+    }
+
     console.error(`Error: ${message}`);
     process.exit(1);
   }
