@@ -75,6 +75,8 @@ function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
   if (clean.color === '') delete clean.color;
   if (clean.theme === '') delete clean.theme;
   if (clean.title === '') delete clean.title;
+  if (clean['fill-color'] === '') delete clean['fill-color'];
+  if (clean['align-bars'] === '') delete clean['align-bars'];
 
   // Map kebab-case to camelCase
   if (clean['color-labels'] !== undefined) {
@@ -105,6 +107,31 @@ function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
   if (clean['bar-size'] !== undefined) {
     clean.barSize = clean['bar-size'];
     delete clean['bar-size'];
+  }
+
+  if (clean['fill-color'] !== undefined) {
+    clean.fillColor = clean['fill-color'];
+    delete clean['fill-color'];
+  }
+
+  if (clean['align-bars'] !== undefined) {
+    clean.alignBars = clean['align-bars'];
+    delete clean['align-bars'];
+  }
+
+  if (clean['stack-colors'] !== undefined && Array.isArray(clean['stack-colors']) && clean['stack-colors'].length > 0) {
+    clean.stackColors = clean['stack-colors'];
+    delete clean['stack-colors'];
+  }
+
+  if (clean['stack-labels'] !== undefined && Array.isArray(clean['stack-labels']) && clean['stack-labels'].length > 0) {
+    clean.stackLabels = clean['stack-labels'];
+    delete clean['stack-labels'];
+  }
+
+  if (clean['stack-value-labels'] !== undefined) {
+    clean.stackValueLabels = clean['stack-value-labels'];
+    delete clean['stack-value-labels'];
   }
 
   // Handle structure sub-options

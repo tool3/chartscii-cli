@@ -44,7 +44,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "chartscii": "^3.0.1",
+    "chartscii": "file:../chartscii",
     "yargs": "^16.0.3"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
-import { CustomizationOptions, InputData } from 'chartscii/dist/types/types';
+import { CustomizationOptions, InputData } from 'chartscii';
 
-export interface CLIOptions extends CustomizationOptions {
+export type CLIOptions = CustomizationOptions & {
   _?: Array<string | number>;
   $0?: string;
 }

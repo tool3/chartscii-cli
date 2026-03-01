@@ -151,6 +151,36 @@ function createParser() {
       description: 'Scale mode (auto or number for max value)',
       default: 'auto'
     })
+    .option('fill-color', {
+      alias: 'G',
+      type: 'string',
+      description: 'Color for fill character',
+      default: ''
+    })
+    .option('align-bars', {
+      alias: 'E',
+      type: 'string',
+      description: 'Bar alignment (horizontal: top/center/bottom/justify, vertical: left/center/right/justify)',
+      default: ''
+    })
+    .option('stack-colors', {
+      alias: 'I',
+      type: 'array',
+      description: 'Colors for stacked segments (space-separated)',
+      default: []
+    })
+    .option('stack-labels', {
+      alias: 'J',
+      type: 'array',
+      description: 'Labels for stacked segments (space-separated)',
+      default: []
+    })
+    .option('stack-value-labels', {
+      alias: 'K',
+      type: 'boolean',
+      description: 'Show value labels on stacked segments',
+      default: false
+    })
 
     // Data options
     .option('sort', {
