@@ -328,7 +328,7 @@ chartscii examples/example-stacked.json \
 # Same with short aliases
 chartscii examples/example-stacked.json -J Frontend Backend DevOps -I red green blue -K
 
-# JSON format for stacked data
+# JSON format for stacked data with global colors
 cat > stacked.json << 'EOF'
 [
   {
@@ -344,6 +344,47 @@ cat > stacked.json << 'EOF'
 EOF
 chartscii stacked.json -J Sales Support Marketing -I cyan yellow purple
 ```
+
+#### Color Override Patterns for Stacked Charts
+
+Stacked charts support three levels of color specification (from highest to lowest priority):
+
+1. **Per-segment colors** (using object format):
+```json
+[
+  {
+    "label": "Q1",
+    "value": [
+      { "value": 100, "color": "blue" },
+      { "value": 50 },
+      { "value": 25, "color": "yellow" }
+    ]
+  }
+]
+```
+
+2. **Per-bar color arrays** (full or partial override):
+```json
+[
+  {
+    "label": "Q1",
+    "value": [100, 50, 25],
+    "color": ["red", "green", "blue"]
+  },
+  {
+    "label": "Q2",
+    "value": [120, 60, 30],
+    "color": ["yellow"]
+  }
+]
+```
+
+3. **Global stackColors** (from CLI options):
+```bash
+chartscii stacked.json -I red green blue
+```
+
+These can be combined for maximum flexibility. Segments without specific colors will fall back to the next level (per-bar array → global stackColors).
 
 ### Advanced Styling (v4)
 
