@@ -158,8 +158,8 @@ git log --oneline | wc -l | chartscii -t "Total Commits" -c yellow
 # Test results
 npm test 2>&1 | grep "passing" | awk '{print "Passed "$1}' | chartscii -c green
 
-# Stacked chart (v4) - using short aliases
-chartscii examples/example-stacked.json -J Frontend Backend DevOps -I red green blue
+# Stacked chart (v4) - with colors and value labels
+chartscii examples/example-stacked.json -I red green blue -K
 
 # Fill with color (v4) - using short alias
 echo "10 20 30" | chartscii -f "." -G blue -t "Colored Fill"
@@ -168,7 +168,7 @@ echo "10 20 30" | chartscii -f "." -G blue -t "Colored Fill"
 du -sh */ | chartscii -w auto -c auto -t "Full Width Chart"
 
 # Auto width and height
-seq 1 20 | chartscii -w auto -h auto -c auto -o vertical -t "Full Terminal"
+seq 1 20 | chartscii -w auto -c auto -o vertical -t "Full Terminal"
 ```
 
 ## Complete Options Reference
@@ -229,8 +229,8 @@ seq 1 20 | chartscii -w auto -h auto -c auto -o vertical -t "Full Terminal"
 | Short | Long | Type | Default | Description |
 |-------|------|------|---------|-------------|
 | `-I` | `--stack-colors` | array | [] | Colors for stacked segments (space-separated) |
-| `-J` | `--stack-labels` | array | [] | Labels for stacked segments (space-separated) |
-| `-K` | `--stack-value-labels` | boolean | false | Show value labels on stacked segments |
+| `-J` | `--stack-labels` | array | [] | Labels for stacked segments *(not yet implemented in chartscii v4)* |
+| `-K` | `--stack-value-labels` | boolean | false | Show pipe-separated values on bars (e.g., "100\|50\|30") - auto-enables `-v` |
 
 ### Utility Options
 
@@ -240,7 +240,55 @@ seq 1 20 | chartscii -w auto -h auto -c auto -o vertical -t "Full Terminal"
 |  | `--help`, `-?` | boolean | | Show help |
 |  | `--version` | boolean | | Show version |
 
+## Important Notes
+
+### Auto Width and Height
+
+When using `-w auto` or `-h auto`, the terminal dimensions are used (falling back to 80x20 when piped).
+
+**Width Behavior**:
+
+For **horizontal charts**, width now works as expected:
+- `-w 80` produces output that fits exactly in 80 characters
+- The CLI automatically calculates the bar area width accounting for labels and structure
+- Works correctly with labels, percentages, value labels, and all options
+
+For **vertical charts**, width is approximate:
+- `-w 80` aims for 80-character output but may be slightly wider
+- This is due to the library's auto-calculation of bar sizing and padding
+- For precise width control, use explicit `-b` (barSize) and `-d 0` (no padding)
+- Example: `seq 1 20 | chartscii -w 80 -o vertical -b 3 -d 0`
+
+### Padding Behavior
+
+The `-d` (padding) parameter controls the blank lines between bars in horizontal charts (or spaces between bars in vertical charts):
+- `-d 0`: No spacing between bars
+- `-d 1`: 1 blank line between bars (except after the last bar)
+- `-d 2`: 2 blank lines between bars (except after the last bar)
+
+**Note**: When the specified `height` is larger than needed for the bars and padding, extra blank lines are added to fill the vertical space. To see minimal padding, use a smaller height value (e.g., `-h 10` for a few bars).
+
 ## Examples
+```bash
+chartscii examples/example.csv -c auto -p --no-sort -k beach
+```
+![csv](examples/csv.svg)
+
+```bash
+chartscii examples/example.json -k pastel
+```
+![csv](examples/json.svg)
+
+```bash
+chartscii examples/example-stacked-color-overrides.json -I marine pink purple -k pastel
+```
+![csv](examples/stacked-override.svg)
+
+```bash
+chartscii examples/example-stacked.csv -c auto -p -k sport
+```
+![csv](examples/stacked-csv.svg)
+
 
 ### Basic Charts
 
@@ -286,6 +334,10 @@ chartscii 10 20 30 40 50 -c auto -t "Sales by Region"
 Each bar will have a different color: red, green, yellow, blue, purple, etc.
 
 ```bash
+# Auto colors work with stacked charts too!
+echo -e "Q1 100|50|30\nQ2 120|60|40" | chartscii -t "Quarterly"
+# Automatically assigns colors to segments: red, green, yellow
+
 # Combine with themes
 chartscii data.csv -c auto -k neon -t "Neon Rainbow"
 ```
@@ -324,6 +376,10 @@ chartscii 99.99 149.99 199.99 -v -P '€' -V 2
 ```bash
 # Simple stacked chart from JSON file
 chartscii examples/example-stacked.json
+
+# Auto-colors for stacked segments (no -I needed!)
+echo -e "Q1 100|50|30\nQ2 120|60|40" | chartscii -t "Auto Stack Colors"
+# Automatically uses: red, green, yellow for segments
 
 # With stack labels and colors (using long options)
 chartscii examples/example-stacked.json \
@@ -392,6 +448,23 @@ chartscii stacked.json -I red green blue
 
 These can be combined for maximum flexibility. Segments without specific colors will fall back to the next level (per-bar array → global stackColors).
 
+#### Stacked Value Labels
+
+Show the individual segment values on each bar:
+
+```bash
+# Show segment values (e.g., "100|50|30")
+chartscii stacked.json -K
+
+# Combine with colors
+chartscii stacked.json -I red green blue -K
+
+# With custom precision
+chartscii stacked.json -K -V 0
+```
+
+Note: The `-K` flag automatically enables `-v` (value labels), so you don't need both.
+
 ### Advanced Styling (v4)
 
 ```bash
@@ -455,6 +528,14 @@ Or with labels:
 JavaScript,68
 TypeScript,56
 Python,43
+```
+
+**Stacked values** in CSV (multiple formats supported):
+```csv
+JavaScript,[68, 21, 23]
+TypeScript,56|11|10
+Python,"43 10 5"
+Go,32,8,4
 ```
 
 ```bash
@@ -635,6 +716,36 @@ du -sh * | chartscii  # Handles "8.0K filename" format
 ### Mixed String/Number
 ```bash
 echo -e "Price: $99.99\nCost: $149.99" | chartscii  # Extracts numbers
+```
+
+### Stacked Values (v4)
+
+Multiple formats supported for stacked bar charts:
+
+**CSV formats:**
+```csv
+Label,[100, 50, 30]    # Array notation
+Label,100|50|30        # Pipe-separated
+Label,"100 50 30"      # Space-separated in quotes
+Label,100,50,30        # Multiple columns
+```
+
+**Text formats:**
+```bash
+echo "Label 100|50|30" | chartscii -I red green blue
+echo "Label [100, 50, 30]" | chartscii -I red green blue
+echo "100|50|30 Label" | chartscii -I red green blue
+```
+
+**JSON format:**
+```json
+[
+  {
+    "label": "Q1",
+    "value": [100, 50, 30],
+    "color": ["red", "green", "blue"]
+  }
+]
 cat report.txt | chartscii  # Finds numbers in any text
 ```
 

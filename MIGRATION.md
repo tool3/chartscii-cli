@@ -23,17 +23,6 @@ chartscii 1 2 3 4 5
 chartscii data.json
 chartscii $(seq 1 20)
 ```
-
-#### 2. `-R` (Repo) Option Removed
-
-The git repository analysis feature has been removed. Use git commands directly instead:
-
-**Alternative:**
-```bash
-git log --author="$(git config user.name)" --format=%ad --date=short | \
-  uniq -c | awk '{print $1}' | chartscii -t "My Commits"
-```
-
 ### New Features
 
 #### Automatic File Detection

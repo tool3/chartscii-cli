@@ -7,9 +7,11 @@ export function getDefaults(): CustomizationOptions {
   return {
     orientation: 'horizontal',
     width: 80,
-    height: 20,
-    barSize: 1,
-    padding: 1,
+    // Don't set height default - will be set based on orientation in buildOptions
+    // height: 20,
+    // Don't set barSize/padding defaults - let library auto-calculate for vertical charts
+    // barSize: 1,
+    // padding: 1,
     labels: true,
     colorLabels: true,
     percentage: false,
@@ -61,6 +63,13 @@ export function buildOptions(options: Partial<CustomizationOptions>): Customizat
       ...defaults.structure!,
       ...newStructure
     };
+  }
+
+  // Set height default based on orientation if not specified
+  // In horizontal mode, height controls bar thickness (1 = single line per bar)
+  // In vertical mode, height controls chart height (20 = reasonable default)
+  if (config.height === undefined) {
+    config.height = config.orientation === 'horizontal' ? 1 : 20;
   }
 
   return config as CustomizationOptions;
@@ -140,6 +149,10 @@ function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
   if (clean['stack-value-labels'] !== undefined) {
     clean.stackValueLabels = clean['stack-value-labels'];
     delete clean['stack-value-labels'];
+    // Auto-enable valueLabels when stackValueLabels is true
+    if (clean.stackValueLabels) {
+      clean.valueLabels = true;
+    }
   }
 
   // Handle structure sub-options

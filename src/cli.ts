@@ -9,6 +9,7 @@ import * as dataParser from './parser';
 import * as configBuilder from './config';
 import * as reader from './reader';
 import { CLIOptions } from './types';
+import { calculateBarAreaWidth } from './width-calculator';
 
 /**
  * Check if argument is a file path
@@ -107,20 +108,20 @@ function createParser() {
         if (value === 'auto') return 'auto';
         const num = Number(value);
         return isNaN(num) ? 20 : num;
-      },
-      default: 20
+      }
+      // No default - will be set based on orientation in buildOptions
     })
     .option('bar-size', {
       alias: 'b',
       type: 'number',
-      description: 'Bar size (thickness)',
-      default: 1
+      description: 'Bar size (thickness)'
+      // No default - let library auto-calculate for vertical charts
     })
     .option('padding', {
       alias: 'd',
       type: 'number',
-      description: 'Padding between bars',
-      default: 1
+      description: 'Padding between bars'
+      // No default - let library auto-calculate for vertical charts
     })
 
     // Styling options
@@ -285,8 +286,9 @@ async function run() {
 
       // Handle auto color cycling
       let data: any = parsedData;
+      const AUTO_COLORS = ['red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'pink', 'orange', 'marine'];
+
       if (argv.color === 'auto') {
-        const AUTO_COLORS = ['red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'pink', 'orange', 'marine'];
         data = parsedData.map((item: any, index: number) => {
           const color = AUTO_COLORS[index % AUTO_COLORS.length];
           if (typeof item === 'number') {
@@ -297,7 +299,38 @@ async function run() {
         delete argv.color;
       }
 
+      // Check if any data has stacked values (arrays) and no stackColors provided
+      const hasStackedData = data.some((item: any) =>
+        Array.isArray(item?.value) ||
+        (Array.isArray(item?.value) && item.value.some((v: any) => typeof v === 'object'))
+      );
+
+      if (hasStackedData && (!argv.stackColors || argv.stackColors.length === 0)) {
+        // Find the maximum number of segments
+        let maxSegments = 1;
+        data.forEach((item: any) => {
+          if (Array.isArray(item?.value)) {
+            maxSegments = Math.max(maxSegments, item.value.length);
+          }
+        });
+
+        // Auto-generate stack colors if not provided
+        if (maxSegments > 1) {
+          argv.stackColors = AUTO_COLORS.slice(0, maxSegments);
+        }
+      }
+
       const chartConfig = configBuilder.buildOptions(argv);
+
+      // Adjust width to fit in terminal (CLI concern only)
+      // Pass argv (original options) not chartConfig so width calculator can distinguish
+      // between user-provided values and defaults
+      if (typeof chartConfig.width === 'number') {
+        const targetWidth = chartConfig.width;
+        const barAreaWidth = calculateBarAreaWidth(targetWidth, data, argv);
+        chartConfig.width = barAreaWidth;
+      }
+
       const chart = new Chartscii(data, chartConfig);
       console.log(chart.create());
       return;

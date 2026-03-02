@@ -11,6 +11,46 @@ export function parseCSV(content: string): InputData[] {
     const trimmedLine = line.trim();
     if (!trimmedLine) continue;
 
+    // Format 1: Array notation - JavaScript,[68, 21, 23]
+    const arrayMatch = line.match(/^([^,]+),\s*(\[[\d\s,]+\])$/);
+    if (arrayMatch) {
+      const label = arrayMatch[1].trim();
+      const arrayStr = arrayMatch[2];
+      try {
+        const values = JSON.parse(arrayStr);
+        if (Array.isArray(values) && values.every(v => typeof v === 'number')) {
+          result.push({ label, value: values });
+          continue;
+        }
+      } catch {
+        // Fall through to regular parsing
+      }
+    }
+
+    // Format 2: Pipe-separated - JavaScript,68|21|23
+    const pipeMatch = line.match(/^([^,]+),\s*([\d.]+(?:\|[\d.]+)+)$/);
+    if (pipeMatch) {
+      const label = pipeMatch[1].trim();
+      const pipeStr = pipeMatch[2];
+      const values = pipeStr.split('|').map(v => parseNumber(v.trim())).filter(v => v !== null) as number[];
+      if (values.length > 1) {
+        result.push({ label, value: values });
+        continue;
+      }
+    }
+
+    // Format 3: Space-separated in quotes - JavaScript,"68 21 23"
+    const quotedSpaceMatch = line.match(/^([^,]+),\s*"([\d\s.]+)"$/);
+    if (quotedSpaceMatch) {
+      const label = quotedSpaceMatch[1].trim();
+      const spaceStr = quotedSpaceMatch[2];
+      const values = spaceStr.split(/\s+/).map(v => parseNumber(v.trim())).filter(v => v !== null) as number[];
+      if (values.length > 1) {
+        result.push({ label, value: values });
+        continue;
+      }
+    }
+
     const parts = trimmedLine.split(',').map(p => p.trim());
 
     if (parts.length === 1) {
@@ -22,6 +62,21 @@ export function parseCSV(content: string): InputData[] {
         result.push({ label: parts[0], value });
       }
     } else {
+      // Format 4: Multiple columns - JavaScript,68,21,23
+      // If first part is not a number (label) and rest are numbers, treat as stacked
+      const firstIsLabel = parseNumber(parts[0]) === null;
+      if (firstIsLabel) {
+        const values = parts.slice(1).map(p => parseNumber(p)).filter(v => v !== null) as number[];
+        if (values.length > 1) {
+          result.push({ label: parts[0], value: values });
+          continue;
+        } else if (values.length === 1) {
+          result.push({ label: parts[0], value: values[0] });
+          continue;
+        }
+      }
+
+      // Fallback: treat as separate numeric entries
       for (const part of parts) {
         const value = parseNumber(part);
         if (value !== null) result.push(value);
@@ -90,8 +145,14 @@ export function parseText(content: string): InputData[] {
       .filter(item => item !== null) as InputData[];
   }
 
-  // Single line: check if it contains non-numeric strings
+  // Single line: try to parse as label+value(s) first
   const tokens = trimmed.split(/\s+/);
+
+  if (tokens.length >= 2) {
+    const parsed = parseNumberLabelLine(trimmed);
+    if (parsed) return [parsed];
+  }
+
   const hasNonNumeric = tokens.some(token => parseNumber(token) === null);
 
   if (hasNonNumeric) {
@@ -126,8 +187,10 @@ export function parse(content: string): InputData[] {
     }
   }
 
-  // Try CSV if it contains commas
-  if (trimmed.includes(',')) {
+  // Try CSV if it contains commas (but not if they're only inside brackets)
+  // This prevents [1, 2, 3] from being detected as CSV
+  const hasCommasOutsideBrackets = /,(?![^\[]*\])/.test(trimmed);
+  if (hasCommasOutsideBrackets) {
     try {
       const result = parseCSV(trimmed);
       if (result.length > 0) return result;
@@ -213,6 +276,7 @@ function parseNumber(str: string): number | null {
  * Parse a line that contains a number and label separated by whitespace
  * Handles both "number label" and "label number" formats
  * Also handles size suffixes like "8.0K filename"
+ * Also handles stacked values like "label 100|50|30" or "label [100, 50, 30]"
  */
 function parseNumberLabelLine(line: string): InputData | null {
   const tokens = line.split(/\s+/);
@@ -221,8 +285,41 @@ function parseNumberLabelLine(line: string): InputData | null {
     return null;
   }
 
-  // Try "number label" format (e.g., "8.0K CONTRIBUTING.md")
+  // Format: "label [100, 50, 30]"
+  const arrayMatch = line.match(/^(.+?)\s+(\[[\d\s,]+\])$/);
+  if (arrayMatch) {
+    const label = arrayMatch[1].trim();
+    const arrayStr = arrayMatch[2];
+    try {
+      const values = JSON.parse(arrayStr);
+      if (Array.isArray(values) && values.every(v => typeof v === 'number')) {
+        return { label, value: values };
+      }
+    } catch {
+      // Fall through
+    }
+  }
+
+  // Format: "label 100|50|30" or "100|50|30 label"
+  const lastToken = tokens[tokens.length - 1];
+  if (lastToken.includes('|')) {
+    const pipeValues = lastToken.split('|').map(v => parseNumber(v.trim())).filter(v => v !== null) as number[];
+    if (pipeValues.length > 1) {
+      const label = tokens.slice(0, -1).join(' ');
+      return { label, value: pipeValues };
+    }
+  }
+
   const firstToken = tokens[0];
+  if (firstToken.includes('|')) {
+    const pipeValues = firstToken.split('|').map(v => parseNumber(v.trim())).filter(v => v !== null) as number[];
+    if (pipeValues.length > 1) {
+      const label = tokens.slice(1).join(' ');
+      return { label, value: pipeValues };
+    }
+  }
+
+  // Try "number label" format (e.g., "8.0K CONTRIBUTING.md")
   const restAsLabel = tokens.slice(1).join(' ');
 
   // Check for size suffix first
@@ -249,7 +346,7 @@ function parseNumberLabelLine(line: string): InputData | null {
   }
 
   // Try "label number" format (e.g., "CONTRIBUTING.md 8.0K")
-  const lastToken = tokens[tokens.length - 1];
+  // lastToken already declared above
   const restAsLabelReverse = tokens.slice(0, -1).join(' ');
 
   // Check for size suffix
