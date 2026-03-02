@@ -8,7 +8,8 @@ describe('config', () => {
 
       expect(defaults.orientation).to.equal('horizontal');
       expect(defaults.width).to.equal(80);
-      expect(defaults.height).to.equal(20);
+      // height is not set in defaults - it's set dynamically based on orientation in buildOptions
+      expect(defaults.height).to.be.undefined;
       expect(defaults.labels).to.be.true;
       expect(defaults.colorLabels).to.be.true;
       expect(defaults.sort).to.be.true;

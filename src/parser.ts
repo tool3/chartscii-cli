@@ -145,24 +145,36 @@ export function parseText(content: string): InputData[] {
       .filter(item => item !== null) as InputData[];
   }
 
-  // Single line: try to parse as label+value(s) first
+  // Single line: check if all tokens are pure numbers first
   const tokens = trimmed.split(/\s+/);
-
-  if (tokens.length >= 2) {
-    const parsed = parseNumberLabelLine(trimmed);
-    if (parsed) return [parsed];
-  }
-
   const hasNonNumeric = tokens.some(token => parseNumber(token) === null);
 
-  if (hasNonNumeric) {
-    // Extract numbers and ignore non-numeric tokens
+  if (!hasNonNumeric) {
+    // All tokens are numbers - return them as a simple array
     return tokens
       .map(parseNumber)
       .filter(n => n !== null) as number[];
   }
 
-  // Pure numbers
+  // Has non-numeric tokens - try to parse as label+value format
+  // Only if there are exactly 2 tokens OR if there are multiple numbers mixed with non-numbers
+  const numericCount = tokens.filter(token => parseNumber(token) !== null).length;
+
+  if (tokens.length === 2) {
+    const parsed = parseNumberLabelLine(trimmed);
+    if (parsed) return [parsed];
+  } else if (numericCount > 1) {
+    // Multiple numbers mixed with non-numeric tokens - extract just the numbers
+    return tokens
+      .map(parseNumber)
+      .filter(n => n !== null) as number[];
+  } else if (tokens.length > 2) {
+    // Single number with multiple non-numeric tokens - try label+value
+    const parsed = parseNumberLabelLine(trimmed);
+    if (parsed) return [parsed];
+  }
+
+  // Extract just the numbers and ignore non-numeric tokens
   return tokens
     .map(parseNumber)
     .filter(n => n !== null) as number[];

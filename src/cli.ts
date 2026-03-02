@@ -109,19 +109,17 @@ function createParser() {
         const num = Number(value);
         return isNaN(num) ? 20 : num;
       }
-      // No default - will be set based on orientation in buildOptions
     })
     .option('bar-size', {
       alias: 'b',
       type: 'number',
       description: 'Bar size (thickness)'
-      // No default - let library auto-calculate for vertical charts
     })
     .option('padding', {
       alias: 'd',
       type: 'number',
-      description: 'Padding between bars'
-      // No default - let library auto-calculate for vertical charts
+      description: 'Padding between bars',
+      default: 1,
     })
 
     // Styling options
@@ -156,8 +154,9 @@ function createParser() {
       }
     })
     .option('scale', {
+      alias: 'S',
       type: 'string',
-      description: 'Scale mode (auto or number for max value)',
+      description: 'Scale mode: auto (0 to max), relative (min to max with baseline), relative-zero (min to max, no baseline), or number for fixed scale',
       default: 'auto'
     })
     .option('fill-color', {

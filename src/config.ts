@@ -11,7 +11,7 @@ export function getDefaults(): CustomizationOptions {
     // height: 20,
     // Don't set barSize/padding defaults - let library auto-calculate for vertical charts
     // barSize: 1,
-    // padding: 1,
+    padding: 1,
     labels: true,
     colorLabels: true,
     percentage: false,
