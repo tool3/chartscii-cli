@@ -1,8 +1,5 @@
 import { InputData, CustomizationOptions } from './types';
 
-/**
- * Calculate maximum label width from data
- */
 function calculateMaxLabelWidth(data: InputData[], includePercentage: boolean): number {
   let maxWidth = 0;
 
@@ -35,14 +32,6 @@ function calculateMaxLabelWidth(data: InputData[], includePercentage: boolean): 
   return maxWidth;
 }
 
-/**
- * Calculate the actual bar area width that should be passed to chartscii
- * to ensure the final output fits within the target terminal width.
- *
- * This is a CLI-only concern. The library just renders based on the width we give it.
- * We need to calculate backwards from the desired terminal width to figure out
- * what bar width to pass to the library.
- */
 export function calculateBarAreaWidth(
   targetWidth: number,
   data: InputData[],

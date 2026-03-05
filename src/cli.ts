@@ -11,9 +11,6 @@ import * as reader from './reader';
 import { CLIOptions } from './types';
 import { calculateBarAreaWidth } from './width-calculator';
 
-/**
- * Check if argument is a file path
- */
 function isFilePath(arg: string): boolean {
   try {
     return fs.existsSync(arg) && fs.statSync(arg).isFile();
@@ -22,9 +19,6 @@ function isFilePath(arg: string): boolean {
   }
 }
 
-/**
- * Create parser
- */
 function createParser() {
   return yargs(hideBin(process.argv))
     .scriptName('chartscii')
@@ -39,7 +33,6 @@ function createParser() {
     .example('$0 1 2 3 -c green -t "My Chart"', 'Chart with options')
     .example('$0 1 2 3 -f -o vertical', 'Vertical chart with fill')
 
-    // Display options
     .option('title', {
       alias: 't',
       type: 'string',
@@ -83,7 +76,6 @@ function createParser() {
       default: 2
     })
 
-    // Layout options
     .option('orientation', {
       alias: 'o',
       type: 'string',
@@ -122,7 +114,6 @@ function createParser() {
       default: 1,
     })
 
-    // Styling options
     .option('color', {
       alias: 'c',
       type: 'string',
@@ -145,11 +136,8 @@ function createParser() {
       alias: 'f',
       description: 'Fill character for empty space (default: ▒)',
       coerce: (value: any) => {
-        // If flag used without value, yargs passes true
         if (value === true) return '▒';
-        // If value provided, use it
         if (typeof value === 'string') return value;
-        // Otherwise undefined (no flag)
         return undefined;
       }
     })
@@ -190,7 +178,6 @@ function createParser() {
       default: false
     })
 
-    // Data options
     .option('sort', {
       alias: 's',
       type: 'boolean',
@@ -204,7 +191,6 @@ function createParser() {
       default: false
     })
 
-    // Structure options
     .option('naked', {
       alias: 'n',
       type: 'boolean',
@@ -236,23 +222,18 @@ function createParser() {
       default: '╚'
     })
 
-    // Utility options
     .option('list-themes', {
       type: 'boolean',
       description: 'List all available color themes',
       default: false
     })
 
-    // Help
     .help('help')
     .alias('help', '?')
     .version()
     .wrap(Math.min(120, yargs().terminalWidth()));
 }
 
-/**
- * Main execution
- */
 async function run() {
   const parser = createParser();
   const argv = parser.argv as unknown as CLIOptions;
@@ -274,16 +255,13 @@ async function run() {
     process.exit(0);
   }
 
-  // If first argument is a file, read it and pass as stdin-like data
   if (args.length === 1 && typeof args[0] === 'string' && isFilePath(args[0])) {
     const filePath = args[0];
     const fileContent = reader.readFile(filePath);
 
     try {
-      // Parse file content directly
       const parsedData = dataParser.parse(fileContent);
 
-      // Handle auto color cycling
       let data: any = parsedData;
       const AUTO_COLORS = ['red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'pink', 'orange', 'marine'];
 
@@ -298,14 +276,12 @@ async function run() {
         delete argv.color;
       }
 
-      // Check if any data has stacked values (arrays) and no stackColors provided
       const hasStackedData = data.some((item: any) =>
         Array.isArray(item?.value) ||
         (Array.isArray(item?.value) && item.value.some((v: any) => typeof v === 'object'))
       );
 
       if (hasStackedData && (!argv.stackColors || argv.stackColors.length === 0)) {
-        // Find the maximum number of segments
         let maxSegments = 1;
         data.forEach((item: any) => {
           if (Array.isArray(item?.value)) {
@@ -313,7 +289,6 @@ async function run() {
           }
         });
 
-        // Auto-generate stack colors if not provided
         if (maxSegments > 1) {
           argv.stackColors = AUTO_COLORS.slice(0, maxSegments);
         }
@@ -321,9 +296,6 @@ async function run() {
 
       const chartConfig = configBuilder.buildOptions(argv);
 
-      // Adjust width to fit in terminal (CLI concern only)
-      // Pass argv (original options) not chartConfig so width calculator can distinguish
-      // between user-provided values and defaults
       if (typeof chartConfig.width === 'number') {
         const targetWidth = chartConfig.width;
         const barAreaWidth = calculateBarAreaWidth(targetWidth, data, argv);
@@ -346,7 +318,6 @@ async function run() {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
 
-    // If no input was provided, show help instead of error
     if (message.includes('No input provided') || message.includes('Empty input')) {
       parser.showHelp();
       process.exit(0);
@@ -357,7 +328,6 @@ async function run() {
   }
 }
 
-// Execute
 run().catch(error => {
   console.error('Unexpected error:', error);
   process.exit(1);

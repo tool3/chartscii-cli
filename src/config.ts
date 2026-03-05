@@ -1,16 +1,9 @@
 import { CustomizationOptions } from './types';
 
-/**
- * Get default configuration
- */
 export function getDefaults(): CustomizationOptions {
   return {
     orientation: 'horizontal',
     width: 80,
-    // Don't set height default - will be set based on orientation in buildOptions
-    // height: 20,
-    // Don't set barSize/padding defaults - let library auto-calculate for vertical charts
-    // barSize: 1,
     padding: 1,
     labels: true,
     colorLabels: true,
@@ -32,14 +25,10 @@ export function getDefaults(): CustomizationOptions {
   };
 }
 
-/**
- * Build configuration from CLI options
- */
 export function buildOptions(options: Partial<CustomizationOptions>): CustomizationOptions {
   const clean = cleanYargsOptions(options);
   const defaults = getDefaults();
 
-  // Handle auto width/height
   if ((clean as any).width === 'auto') {
     clean.width = process.stdout.columns || 80;
   }
@@ -47,17 +36,14 @@ export function buildOptions(options: Partial<CustomizationOptions>): Customizat
     clean.height = process.stdout.rows || 20;
   }
 
-  // Save structure for special handling
   const newStructure = clean.structure;
   delete clean.structure;
 
-  // Merge with defaults
   const config = {
     ...defaults,
     ...clean
   };
 
-  // Handle structure separately to avoid partial overwrite
   if (newStructure) {
     config.structure = {
       ...defaults.structure!,
@@ -65,9 +51,6 @@ export function buildOptions(options: Partial<CustomizationOptions>): Customizat
     };
   }
 
-  // Set height default based on orientation if not specified
-  // In horizontal mode, height controls bar thickness (1 = single line per bar)
-  // In vertical mode, height controls chart height (20 = reasonable default)
   if (config.height === undefined) {
     config.height = config.orientation === 'horizontal' ? 1 : 20;
   }
@@ -75,27 +58,20 @@ export function buildOptions(options: Partial<CustomizationOptions>): Customizat
   return config as CustomizationOptions;
 }
 
-/**
- * Clean yargs-specific options
- */
 function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
   const clean: any = { ...options };
 
-  // Remove yargs internals
   delete clean._;
   delete clean.$0;
   delete clean.help;
   delete clean.version;
 
-  // Remove empty strings to allow defaults to kick in
-  // Note: fill is handled by coerce in cli.ts, so we don't delete it here
   if (clean.color === '') delete clean.color;
   if (clean.theme === '') delete clean.theme;
   if (clean.title === '') delete clean.title;
   if (clean['fill-color'] === '') delete clean['fill-color'];
   if (clean['align-bars'] === '') delete clean['align-bars'];
 
-  // Map kebab-case to camelCase
   if (clean['color-labels'] !== undefined) {
     clean.colorLabels = clean['color-labels'];
     delete clean['color-labels'];
@@ -149,13 +125,11 @@ function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
   if (clean['stack-value-labels'] !== undefined) {
     clean.stackValueLabels = clean['stack-value-labels'];
     delete clean['stack-value-labels'];
-    // Auto-enable valueLabels when stackValueLabels is true
     if (clean.stackValueLabels) {
       clean.valueLabels = true;
     }
   }
 
-  // Handle structure sub-options
   const structure: any = {};
   let hasStructure = false;
 
