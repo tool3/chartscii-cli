@@ -1,4 +1,5 @@
 import { CustomizationOptions } from './types';
+import { parseGradient } from './gradient-parser';
 
 export function getDefaults(): CustomizationOptions {
   return {
@@ -66,7 +67,12 @@ function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
   delete clean.help;
   delete clean.version;
 
-  if (clean.color === '') delete clean.color;
+  if (clean.color === '') {
+    delete clean.color;
+  } else if (clean.color && typeof clean.color === 'string') {
+    clean.color = parseGradient(clean.color);
+  }
+
   if (clean.theme === '') delete clean.theme;
   if (clean.title === '') delete clean.title;
   if (clean['fill-color'] === '') delete clean['fill-color'];

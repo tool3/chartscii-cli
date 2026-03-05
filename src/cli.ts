@@ -32,6 +32,7 @@ function createParser() {
     .example('du -sh * | $0', 'Create chart from command output')
     .example('$0 1 2 3 -c green -t "My Chart"', 'Chart with options')
     .example('$0 1 2 3 -f -o vertical', 'Vertical chart with fill')
+    .example('$0 1 2 3 4 5 -c "gradient(red,yellow,green)"', 'Gradient colors')
 
     .option('title', {
       alias: 't',
@@ -117,7 +118,7 @@ function createParser() {
     .option('color', {
       alias: 'c',
       type: 'string',
-      description: 'Bar color (named, hex, ANSI, or "auto" for cycling colors)',
+      description: 'Bar color (named, hex, ANSI, "auto" for cycling colors, or gradient(color1,color2,...) for gradients)',
       default: ''
     })
     .option('theme', {
@@ -150,7 +151,7 @@ function createParser() {
     .option('fill-color', {
       alias: 'G',
       type: 'string',
-      description: 'Color for fill character',
+      description: 'Color for fill character. Use "auto" to match bar color (works with gradients)',
       default: ''
     })
     .option('align-bars', {
@@ -262,47 +263,15 @@ async function run() {
     try {
       const parsedData = dataParser.parse(fileContent);
 
-      let data: any = parsedData;
-      const AUTO_COLORS = ['red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'pink', 'orange', 'marine'];
-
-      if (argv.color === 'auto') {
-        data = parsedData.map((item: any, index: number) => {
-          const color = AUTO_COLORS[index % AUTO_COLORS.length];
-          if (typeof item === 'number') {
-            return { value: item, color };
-          }
-          return { ...item, color };
-        });
-        delete argv.color;
-      }
-
-      const hasStackedData = data.some((item: any) =>
-        Array.isArray(item?.value) ||
-        (Array.isArray(item?.value) && item.value.some((v: any) => typeof v === 'object'))
-      );
-
-      if (hasStackedData && (!argv.stackColors || argv.stackColors.length === 0)) {
-        let maxSegments = 1;
-        data.forEach((item: any) => {
-          if (Array.isArray(item?.value)) {
-            maxSegments = Math.max(maxSegments, item.value.length);
-          }
-        });
-
-        if (maxSegments > 1) {
-          argv.stackColors = AUTO_COLORS.slice(0, maxSegments);
-        }
-      }
-
       const chartConfig = configBuilder.buildOptions(argv);
 
       if (typeof chartConfig.width === 'number') {
         const targetWidth = chartConfig.width;
-        const barAreaWidth = calculateBarAreaWidth(targetWidth, data, argv);
+        const barAreaWidth = calculateBarAreaWidth(targetWidth, parsedData, argv);
         chartConfig.width = barAreaWidth;
       }
 
-      const chart = new Chartscii(data, chartConfig);
+      const chart = new Chartscii(parsedData, chartConfig);
       console.log(chart.create());
       return;
     } catch (error) {
