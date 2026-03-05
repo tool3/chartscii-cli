@@ -199,7 +199,7 @@ seq 1 20 | chartscii -w auto -c auto -o vertical -t "Full Terminal"
 
 | Short | Long | Type | Default | Description |
 |-------|------|------|---------|-------------|
-| `-c` | `--color` | string | '' | Bar color (name, hex, ANSI, or **`auto`** for cycling) |
+| `-c` | `--color` | string | '' | Bar color (name, hex, ANSI, **`auto`** for cycling, or **`gradient(...)`** for gradients) |
 | `-k` | `--theme` | string | '' | Color theme (see themes below) |
 | `-z` | `--char` | string | '█' | Character for bars |
 | `-f` | `--fill` | string | undefined | **Opt-in** fill character (▒ if flag alone, custom if value) |
@@ -464,6 +464,40 @@ chartscii stacked.json -K -V 0
 ```
 
 Note: The `-K` flag automatically enables `-v` (value labels), so you don't need both.
+
+### Gradient Colors
+
+Create smooth color gradients across your bars:
+
+```bash
+# Basic gradient (horizontal direction by default)
+chartscii 1 2 3 4 5 -c "gradient(red,yellow,green)"
+
+# Two-color gradient
+chartscii 1 2 3 4 5 6 -c "gradient(cyan,pink)"
+
+# Vertical gradient direction (color by bar position)
+chartscii 1 2 3 4 5 -c "gradient(purple,orange:vertical)"
+
+# Reversed gradient (flip the color direction)
+chartscii 1 2 3 4 5 -c "gradient(purple,cyan:reverse)"
+
+# Combine direction and reverse
+chartscii 1 2 3 4 5 -c "gradient(#9982de,#F8C8DC:vertical:reverse)" -o vertical -f "░" -G auto
+
+# Gradients work with themes (theme colors override named colors)
+chartscii 1 2 3 4 5 -c "gradient(red,green)" -k beach
+
+# Gradients work with value labels (theme colors override named colors)
+chartscii 1 2 3 4 5 -c "gradient(pink,purple)" -k pastel -v
+```
+
+**Gradient Options:**
+- `gradient(color1,color2,...)` - Basic gradient with multiple color stops
+- `:vertical` - Apply gradient vertically (by bar position) instead of horizontally (by character position)
+- `:reverse` - Reverse the gradient direction
+- Use hex colors: `gradient(#ff0000,#00ff00)`
+- Combine with `-G auto` (fill-color) for matching fill gradients
 
 ### Advanced Styling (v4)
 

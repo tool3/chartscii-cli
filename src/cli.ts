@@ -40,6 +40,23 @@ function createParser() {
       description: 'Chart title',
       default: ''
     })
+    .option('title-color', {
+      alias: 'T',
+      type: 'string',
+      description: 'Title color (named, hex, ANSI, or "gradient" to match chart gradient)',
+      default: ''
+    })
+    .option('title-align', {
+      type: 'string',
+      description: 'Title alignment',
+      choices: ['left', 'center', 'right'],
+      default: 'left'
+    })
+    .option('title-padding', {
+      type: 'string',
+      description: 'Title padding (CSS-style: single number, "v,h" or "top,right,bottom,left")',
+      default: ''
+    })
     .option('labels', {
       alias: 'l',
       type: 'boolean',

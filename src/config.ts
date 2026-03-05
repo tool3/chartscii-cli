@@ -74,9 +74,49 @@ function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
   }
 
   if (clean.theme === '') delete clean.theme;
-  if (clean.title === '') delete clean.title;
   if (clean['fill-color'] === '') delete clean['fill-color'];
   if (clean['align-bars'] === '') delete clean['align-bars'];
+
+  // Handle title config: convert title, title-color, title-align, and title-padding into TitleConfig
+  const titleText = clean.title || '';
+  const titleColor = clean['title-color'] || '';
+  const titleAlign = clean['title-align'] || 'left';
+  const titlePaddingStr = clean['title-padding'] || '';
+
+  delete clean.title;
+  delete clean['title-color'];
+  delete clean['title-align'];
+  delete clean['title-padding'];
+  delete clean.titleColor;
+  delete clean.titleAlign;
+  delete clean.titlePadding;
+
+  // Parse title padding (CSS-style: number, "v,h", or "top,right,bottom,left")
+  let titlePadding: number | [number, number] | [number, number, number, number] | undefined;
+  if (titlePaddingStr) {
+    const parts = titlePaddingStr.split(',').map((p: string) => parseInt(p.trim(), 10));
+    if (parts.length === 1 && !isNaN(parts[0])) {
+      titlePadding = parts[0];
+    } else if (parts.length === 2 && parts.every((p: number) => !isNaN(p))) {
+      titlePadding = [parts[0], parts[1]];
+    } else if (parts.length === 4 && parts.every((p: number) => !isNaN(p))) {
+      titlePadding = [parts[0], parts[1], parts[2], parts[3]];
+    }
+  }
+
+  if (titleText) {
+    // Only create TitleConfig object if we have non-default options
+    if (titleColor || titleAlign !== 'left' || titlePadding !== undefined) {
+      clean.title = {
+        text: titleText,
+        ...(titleAlign !== 'left' && { align: titleAlign }),
+        ...(titleColor && { color: titleColor }),
+        ...(titlePadding !== undefined && { padding: titlePadding })
+      };
+    } else {
+      clean.title = titleText;
+    }
+  }
 
   if (clean['color-labels'] !== undefined) {
     clean.colorLabels = clean['color-labels'];
