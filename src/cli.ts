@@ -47,12 +47,14 @@ function createParser() {
       default: ''
     })
     .option('title-align', {
+      alias: 'A',
       type: 'string',
       description: 'Title alignment',
       choices: ['left', 'center', 'right'],
       default: 'left'
     })
     .option('title-padding', {
+      alias: 'D',
       type: 'string',
       description: 'Title padding (CSS-style: single number, "v,h" or "top,right,bottom,left")',
       default: ''

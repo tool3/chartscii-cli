@@ -13,7 +13,7 @@
 ```bash
 chartscii data.csv -c auto
 ```
-![csv](examples/csv.svg)
+![csv](examples/svgs/csv.svg)
 
 
 ## Why chartscii?
@@ -272,22 +272,22 @@ The `-d` (padding) parameter controls the blank lines between bars in horizontal
 ```bash
 chartscii examples/example.csv -c auto -p --no-sort -k beach
 ```
-![csv](examples/csv.svg)
+![csv](examples/svgs/csv.svg)
 
 ```bash
 chartscii examples/example.json -k pastel
 ```
-![csv](examples/json.svg)
+![csv](examples/svgs/json.svg)
 
 ```bash
 chartscii examples/example-stacked-color-overrides.json -I marine pink purple -k pastel
 ```
-![csv](examples/stacked-override.svg)
+![csv](examples/svgs/stacked-override.svg)
 
 ```bash
 chartscii examples/example-stacked.csv -c auto -p -k sport
 ```
-![csv](examples/stacked-csv.svg)
+![csv](examples/svgs/stacked-csv.svg)
 
 
 ### Basic Charts
