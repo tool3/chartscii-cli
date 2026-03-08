@@ -120,7 +120,7 @@ Then create a Pull Request on GitHub.
 ```typescript
 describe('parser', () => {
   describe('parseCSV', () => {
-    it('should parse label,value pairs', () => {
+    test('should parse label,value pairs', () => {
       // Arrange
       const csv = 'Label A,10\nLabel B,20';
 

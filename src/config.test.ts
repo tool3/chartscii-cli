@@ -1,9 +1,9 @@
-import { expect } from 'chai';
+import { describe, test, expect } from 'vitest';
 import * as config from './config';
 
 describe('config', () => {
   describe('getDefaults', () => {
-    it('should return sensible defaults', () => {
+    test('should return sensible defaults', () => {
       const defaults = config.getDefaults();
 
       expect(defaults.orientation).to.equal('horizontal');
@@ -18,7 +18,7 @@ describe('config', () => {
       expect(defaults.fill).to.be.undefined;
     });
 
-    it('should include structure defaults', () => {
+    test('should include structure defaults', () => {
       const defaults = config.getDefaults();
 
       expect(defaults.structure).to.exist;
@@ -30,14 +30,14 @@ describe('config', () => {
   });
 
   describe('buildOptions', () => {
-    it('should start with defaults', () => {
+    test('should start with defaults', () => {
       const opts = config.buildOptions({});
 
       expect(opts.width).to.equal(80);
       expect(opts.orientation).to.equal('horizontal');
     });
 
-    it('should override defaults with options', () => {
+    test('should override defaults with options', () => {
       const opts = config.buildOptions({
         width: 120,
         height: 40,
@@ -51,7 +51,7 @@ describe('config', () => {
       expect(opts.percentage).to.be.true;
     });
 
-    it('should clean yargs options', () => {
+    test('should clean yargs options', () => {
       const opts = config.buildOptions({
         _: [1, 2, 3],
         $0: 'chartscii',
@@ -65,7 +65,7 @@ describe('config', () => {
       expect(opts.barSize).to.equal(2);
     });
 
-    it('should handle structure options from yargs', () => {
+    test('should handle structure options from yargs', () => {
       const opts = config.buildOptions({
         'structure-x': '─',
         'structure-y': '│',
@@ -79,7 +79,7 @@ describe('config', () => {
       expect(opts.structure?.bottomLeft).to.equal('└');
     });
 
-    it('should preserve structure when merging', () => {
+    test('should preserve structure when merging', () => {
       const opts = config.buildOptions({
         structure: {
           x: '─'
@@ -92,12 +92,12 @@ describe('config', () => {
       expect(opts.structure?.axis).to.equal('║'); // default preserved
     });
 
-    it('should handle empty options', () => {
+    test('should handle empty options', () => {
       const opts = config.buildOptions({});
       expect(opts.width).to.equal(80); // defaults preserved
     });
 
-    it('should handle partial structure', () => {
+    test('should handle partial structure', () => {
       const opts = config.buildOptions({
         structure: {
           x: '='
@@ -108,7 +108,7 @@ describe('config', () => {
       expect(opts.structure?.y).to.equal('╢');
     });
 
-    it('should handle zero values', () => {
+    test('should handle zero values', () => {
       const opts = config.buildOptions({
         padding: 0,
         barSize: 0

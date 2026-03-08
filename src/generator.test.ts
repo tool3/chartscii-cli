@@ -1,16 +1,16 @@
-import { expect } from 'chai';
+import { describe, test, expect } from 'vitest';
 import * as generator from './generator';
 
 describe('generator', () => {
   describe('generate', () => {
-    it('should generate chart from numeric arguments', async () => {
+    test('should generate chart from numeric arguments', async () => {
       const chart = await generator.generate([1, 2, 3, 4, 5]);
 
       expect(chart).to.be.a('string');
       expect(chart.length).to.be.greaterThan(0);
     });
 
-    it('should generate chart with options', async () => {
+    test('should generate chart with options', async () => {
       const chart = await generator.generate(
         [10, 20, 30],
         {
@@ -23,24 +23,26 @@ describe('generator', () => {
       expect(chart).to.include('Test Chart');
     });
 
-    it('should handle string number arguments', async () => {
+    test('should handle string number arguments', async () => {
       const chart = await generator.generate(['1', '2', '3']);
 
       expect(chart).to.be.a('string');
       expect(chart.length).to.be.greaterThan(0);
     });
 
-    it('should throw on empty data', async () => {
+    test('should throw on empty parsed data', async () => {
+      // Test with data that parses to empty (invalid values)
+      // Note: Empty array [] would try to read stdin which hangs in tests
       try {
-        await generator.generate([]);
+        await generator.generate(['invalid', 'not-a-number']);
         expect.fail('Should have thrown');
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        expect(message).to.match(/No input|Empty input/);
+        expect(message).to.match(/No valid data|No input/);
       }
     });
 
-    it('should apply color options', async () => {
+    test('should apply color options', async () => {
       const chart = await generator.generate(
         [1, 2, 3],
         {
@@ -52,7 +54,7 @@ describe('generator', () => {
       expect(chart).to.be.a('string');
     });
 
-    it('should apply sorting', async () => {
+    test('should apply sorting', async () => {
       const chart = await generator.generate(
         [5, 2, 8, 1, 9],
         {
@@ -63,7 +65,7 @@ describe('generator', () => {
       expect(chart).to.be.a('string');
     });
 
-    it('should handle vertical orientation', async () => {
+    test('should handle vertical orientation', async () => {
       const chart = await generator.generate(
         [1, 2, 3],
         {
@@ -76,7 +78,7 @@ describe('generator', () => {
       expect(chart).to.be.a('string');
     });
 
-    it('should throw on invalid width', async () => {
+    test('should throw on invalid width', async () => {
       try {
         await generator.generate(
           [1, 2, 3],
@@ -90,14 +92,14 @@ describe('generator', () => {
       }
     });
 
-    it('should use sensible defaults when no options provided', async () => {
+    test('should use sensible defaults when no options provided', async () => {
       const chart = await generator.generate([1, 2, 3, 4, 5]);
 
       expect(chart).to.be.a('string');
       expect(chart.length).to.be.greaterThan(0);
     });
 
-    it('should allow overriding individual defaults', async () => {
+    test('should allow overriding individual defaults', async () => {
       const chart = await generator.generate(
         [1, 2, 3],
         {

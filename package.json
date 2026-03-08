@@ -7,8 +7,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "mocha",
-    "test:watch": "mocha --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "pretest": "npm run build",
     "prepublishOnly": "npm run build && npm test"
   },
@@ -48,13 +48,10 @@
     "yargs": "^16.0.3"
   },
   "devDependencies": {
-    "@types/chai": "^4.3.5",
-    "@types/mocha": "^10.0.1",
     "@types/node": "20.12.12",
     "@types/yargs": "17.0.32",
-    "chai": "^4.3.7",
-    "mocha": "^10.2.0",
     "ts-node": "10.9.2",
-    "typescript": "5.4.5"
+    "typescript": "5.4.5",
+    "vitest": "^4.0.18"
   }
 }
