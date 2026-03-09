@@ -5,7 +5,18 @@ import * as reader from './reader';
 import * as config from './config';
 import { calculateBarAreaWidth } from './width-calculator';
 
-export async function generate(args: Array<string | number>, options: Partial<CustomizationOptions> = {}): Promise<string> {
+export type AnimateOptions = {
+  animate?: boolean;
+  duration?: number;
+  fps?: number;
+  easing?: 'linear' | 'easeIn' | 'easeOut' | 'easeInOut';
+};
+
+export async function generate(
+  args: Array<string | number>,
+  options: Partial<CustomizationOptions> = {},
+  animateOptions: AnimateOptions = {}
+): Promise<string> {
   const inputSource = await reader.getInputSource(args);
 
   let data: InputData[];
@@ -29,5 +40,15 @@ export async function generate(args: Array<string | number>, options: Partial<Cu
   }
 
   const chart = new Chartscii(data, chartConfig);
+
+  if (animateOptions.animate) {
+    await (chart as any).animate({
+      duration: animateOptions.duration,
+      fps: animateOptions.fps,
+      easing: animateOptions.easing
+    });
+    return '';
+  }
+
   return chart.create();
 }

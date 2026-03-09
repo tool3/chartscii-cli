@@ -248,6 +248,28 @@ function createParser() {
       default: false
     })
 
+    .option('animate', {
+      type: 'boolean',
+      description: 'Animate the chart (bars grow from 0)',
+      default: false
+    })
+    .option('animate-duration', {
+      type: 'number',
+      description: 'Animation duration in milliseconds',
+      default: 1000
+    })
+    .option('animate-fps', {
+      type: 'number',
+      description: 'Animation frames per second',
+      default: 30
+    })
+    .option('animate-easing', {
+      type: 'string',
+      description: 'Animation easing function',
+      choices: ['linear', 'easeIn', 'easeOut', 'easeInOut'],
+      default: 'easeOut'
+    })
+
     .help('help')
     .alias('help', '?')
     .version()
@@ -275,6 +297,13 @@ async function run() {
     process.exit(0);
   }
 
+  const animateOptions = {
+    animate: (argv as any).animate,
+    duration: (argv as any).animateDuration || (argv as any)['animate-duration'] || 1000,
+    fps: (argv as any).animateFps || (argv as any)['animate-fps'] || 30,
+    easing: (argv as any).animateEasing || (argv as any)['animate-easing'] || 'easeOut'
+  };
+
   if (args.length === 1 && typeof args[0] === 'string' && isFilePath(args[0])) {
     const filePath = args[0];
     const fileContent = reader.readFile(filePath);
@@ -291,7 +320,16 @@ async function run() {
       }
 
       const chart = new Chartscii(parsedData, chartConfig);
-      console.log(chart.create());
+
+      if (animateOptions.animate) {
+        await (chart as any).animate({
+          duration: animateOptions.duration,
+          fps: animateOptions.fps,
+          easing: animateOptions.easing
+        });
+      } else {
+        console.log(chart.create());
+      }
       return;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -301,8 +339,10 @@ async function run() {
   }
 
   try {
-    const chart = await generator.generate(args, argv);
-    console.log(chart);
+    const chartOutput = await generator.generate(args, argv, animateOptions);
+    if (!animateOptions.animate) {
+      console.log(chartOutput);
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
 
