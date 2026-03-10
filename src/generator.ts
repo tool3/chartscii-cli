@@ -10,6 +10,7 @@ export type AnimateOptions = {
   duration?: number;
   fps?: number;
   easing?: 'linear' | 'easeIn' | 'easeOut' | 'easeInOut';
+  step?: number;
 };
 
 export async function generate(
@@ -45,7 +46,8 @@ export async function generate(
     await (chart as any).animate({
       duration: animateOptions.duration,
       fps: animateOptions.fps,
-      easing: animateOptions.easing
+      easing: animateOptions.easing,
+      step: animateOptions.step
     });
     return '';
   }

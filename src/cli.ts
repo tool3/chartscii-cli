@@ -261,13 +261,17 @@ function createParser() {
     .option('animate-fps', {
       type: 'number',
       description: 'Animation frames per second',
-      default: 30
+      default: 60
     })
     .option('animate-easing', {
       type: 'string',
       description: 'Animation easing function',
       choices: ['linear', 'easeIn', 'easeOut', 'easeInOut'],
       default: 'easeOut'
+    })
+    .option('animate-step', {
+      type: 'number',
+      description: 'Animation step size (0-1, e.g. 0.1 for 10 steps). Overrides fps when set.'
     })
 
     .help('help')
@@ -301,7 +305,8 @@ async function run() {
     animate: (argv as any).animate,
     duration: (argv as any).animateDuration || (argv as any)['animate-duration'] || 1000,
     fps: (argv as any).animateFps || (argv as any)['animate-fps'] || 30,
-    easing: (argv as any).animateEasing || (argv as any)['animate-easing'] || 'easeOut'
+    easing: (argv as any).animateEasing || (argv as any)['animate-easing'] || 'easeOut',
+    step: (argv as any).animateStep || (argv as any)['animate-step']
   };
 
   if (args.length === 1 && typeof args[0] === 'string' && isFilePath(args[0])) {
@@ -325,7 +330,8 @@ async function run() {
         await (chart as any).animate({
           duration: animateOptions.duration,
           fps: animateOptions.fps,
-          easing: animateOptions.easing
+          easing: animateOptions.easing,
+          step: animateOptions.step
         });
       } else {
         console.log(chart.create());
