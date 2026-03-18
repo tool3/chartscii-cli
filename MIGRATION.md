@@ -117,3 +117,7 @@ TypeScript,56
 - 📖 [Full Documentation](https://github.com/tool3/chartscii-cli#readme)
 - 🐛 [Report Issues](https://github.com/tool3/chartscii-cli/issues)
 - 💬 [Discussions](https://github.com/tool3/chartscii-cli/discussions)
+
+
+
+npx ts-node src/cli.ts $(seq 1 5) --animate -c "gradient(pink,cyan)" --fill -G auto | npx ts-node ../dvd/src/cli.ts --loop-style reverse --loop-pause 1000 --watermark "made with dvd"
