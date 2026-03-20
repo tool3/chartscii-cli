@@ -120,4 +120,4 @@ TypeScript,56
 
 
 
-npx ts-node src/cli.ts $(seq 1 5) --animate -c "gradient(pink,cyan)" --fill -G auto | npx ts-node ../dvd/src/cli.ts --loop-style reverse --loop-pause 1000 --watermark "made with dvd"
+npx ts-node src/cli.ts $(seq 1 5) --animate -c "gradient(pink,cyan)" -f -G auto | npx ts-node ../dvd/src/cli.ts --loop-style reverse --loop-pause 1000 --watermark "made with dvd"

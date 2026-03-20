@@ -6,7 +6,7 @@
 
 [![npm version](https://img.shields.io/npm/v/chartscii-cli.svg)](https://www.npmjs.com/package/chartscii-cli)
 [![npm downloads](https://img.shields.io/npm/dm/chartscii-cli.svg)](https://www.npmjs.com/package/chartscii-cli)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 </div>
 
@@ -83,15 +83,29 @@ chartscii 1 2 3 --fill "·"
 Automatically handles shell command outputs with size suffixes and mixed formats:
 
 ```bash
-# Parses "8.0K CONTRIBUTING.md" format
-du -sh * | chartscii -t "File Sizes"
+# File count for current directory
+du -sh * | chartscii -c auto -k pastel
+```
+![file count](examples/svgs/file-count.svg)
 
+```bash
 # Parses "CONTRIBUTING.md 8.0K" format
-ls -lh | awk '{print $9" "$5}' | chartscii
+ls -lh | awk '{print $9" "$5}' | chartscii -c auto
+```
+![file size](examples/svgs/file-size.svg)
 
+```bash
 # Extracts numbers from strings like "$1,500" or "Price: 99.99"
+# sales.txt:
+#  Oranges    12.99$
+#  Apples     10.99$
+#  Bananas    9.99$
+#  Pineapples 13.99$
+#  Pears      11.99$
+
 cat sales.txt | chartscii -c auto
 ```
+![sales](examples/svgs/sales.svg)
 
 Supports size suffixes: K, M, G, T (automatically converted to numeric values)
 
@@ -104,7 +118,7 @@ chartscii stats.csv
 chartscii /path/to/data.txt
 ```
 
-### 📊 Stacked Charts (v4 Feature)
+### 📊 Stacked Charts
 Full support for stacked bar charts with multiple segments:
 
 ```bash
@@ -115,7 +129,7 @@ chartscii stacked.json \
   --stack-value-labels
 ```
 
-### 🎨 Advanced Styling (v4 Features)
+### 🎨 Advanced Styling
 New styling options for even more customization:
 
 ```bash
@@ -132,19 +146,23 @@ chartscii 10 20 30 -o vertical --align-bars center
 ## Quick Working Examples
 
 Try these verified examples that work out of the box:
+```bash
+# Visualizes the volatility of your recent work by stacking Insertions (+) vs Deletions (-) for the last 10 commits. This gives an instant visual indicator of whether the team is building (mostly green) or refactoring (mostly red).
+git log --pretty=format:"%h" --numstat -10 | \
+awk 'NF==3 {plus+=$1; minus+=$2} NF==1 {if(h) print h" "plus"|"minus; h=$1; plus=0; minus=0} END {print h" "plus"|"minus}' | \
+chartscii -J -k pastel -I green red -c auto --no-sort
+```
+![code churn](examples/svgs//code-churn.svg)
 
 ```bash
-# Simple number sequence
-seq 1 10 | chartscii -c auto -t "Numbers 1-10"
+ps -eo rss,vsz,comm | grep -v RSS | sort -rn | head -5 | \
+awk '{print $3" "$1"|"($2-$1)}' | \
+npx chartscii -I green cyan -c auto
+```
 
-# File sizes in current directory
-du -sh * | head -5 | chartscii -c auto -t "Top 5 Files"
-
-# Count TypeScript files
-find . -name "*.ts" | wc -l | chartscii -t "TypeScript Files"
-
+```bash
 # Fibonacci sequence visualization
-echo "1 1 2 3 5 8 13 21 34 55" | tr ' ' '\n' | chartscii -t "Fibonacci" -c purple
+echo "1 1 2 3 5 8 13 21 34 55" | tr ' ' '\n' | npzchartscii -t "Fibonacci" -c purple
 
 # Random data
 for i in {1..10}; do echo $((RANDOM % 100)); done | chartscii -c auto -t "Random"
