@@ -95,6 +95,18 @@ function createParser() {
       description: 'Decimal places for value labels',
       default: 2
     })
+    .option('label-format', {
+      type: 'string',
+      alias: 'L',
+      description: 'Format string for labels. Use {label} as placeholder (e.g., "[{label}]")',
+      default: ''
+    })
+    .option('value-label-format', {
+      type: 'string',
+      alias: 'F',
+      description: 'Format string for value labels. Use {value} as placeholder (e.g., "${value}")',
+      default: ''
+    })
 
     .option('orientation', {
       alias: 'o',

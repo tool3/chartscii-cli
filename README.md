@@ -154,15 +154,38 @@ chartscii -J -k pastel -I green red -c auto --no-sort
 ```
 ![code churn](examples/svgs//code-churn.svg)
 
+
 ```bash
-ps -eo rss,vsz,comm | grep -v RSS | sort -rn | head -5 | \
-awk '{print $3" "$1"|"($2-$1)}' | \
-npx chartscii -I green cyan -c auto
+# last 10 days number of commits per hour
+git log --since="10 days ago" --author="talhayut.dev@gmail.com" --date=format-local:'%Y-%m-%d %H:00' --format='%ad' | sort | uniq -c | awk '{count=$1; $1=""; print $0, count}' | sed 's/^ //' | chartscii -c "gradient(gold,firebrick)"
 ```
 
 ```bash
+ps aux | sort -rn -k 10 | head -n 5 | \
+awk '{ 
+    rss=$6/1024; 
+    split($11, a, "/"); 
+    name=a[length(a)]; 
+    sub(/^-/, "", name);
+    printf "%s %d\n", name, rss, rss 
+}' | npx chartscii -c "gradient(green,red)" -k beach -v
+
+```
+
+
+```bash
+# project file distribution
+find . -type f -not -path '*/.*' -not -path './node_modules/*' | \
+sed 's/.*\.//' | sort | uniq -c | sort -nr | head -n 10 | \
+npx chartscii -c "gradient(cyan, magenta)" -v
+```
+![file distro](examples/svgs/file-distro.svg)
+
+
+
+```bash
 # Fibonacci sequence visualization
-echo "1 1 2 3 5 8 13 21 34 55" | tr ' ' '\n' | npzchartscii -t "Fibonacci" -c purple
+echo "1 1 2 3 5 8 13 21 34 55" | tr ' ' '\n' | npx chartscii -t "Fibonacci" -c purple
 
 # Random data
 for i in {1..10}; do echo $((RANDOM % 100)); done | chartscii -c auto -t "Random"

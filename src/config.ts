@@ -174,6 +174,24 @@ function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
     }
   }
 
+  // Handle label-format: convert string template to function
+  // Note: yargs creates both 'label-format' and 'labelFormat' keys
+  const labelFormatStr = clean['label-format'] || '';
+  delete clean['label-format'];
+  delete clean.labelFormat;
+  if (labelFormatStr) {
+    clean.labelFormat = (label: string) => labelFormatStr.replace(/\{label\}/g, label);
+  }
+
+  // Handle value-label-format: convert string template to function
+  // Note: yargs creates both 'value-label-format' and 'valueLabelFormat' keys
+  const valueLabelFormatStr = clean['value-label-format'] || '';
+  delete clean['value-label-format'];
+  delete clean.valueLabelFormat;
+  if (valueLabelFormatStr) {
+    clean.valueLabelFormat = (value: string) => valueLabelFormatStr.replace(/\{value\}/g, value);
+  }
+
   const structure: any = {};
   let hasStructure = false;
 
