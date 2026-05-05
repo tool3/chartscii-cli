@@ -20,7 +20,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tool3/chartscii-cli.git"
+    "url": "https://github.com/tool3/chartscii-cli.git"
   },
   "keywords": [
     "cli",
