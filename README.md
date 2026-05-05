@@ -895,25 +895,8 @@ git log --since="7 days ago" --format=%ad --date=short | sort | uniq -c | charts
 echo "1 1 2 3 5 8 13 21 34 55" | tr ' ' '\n' | chartscii -t "Fibonacci" -c purple
 
 # Process distribution (top users)
-ps aux | awk 'NR>1 {print $1}' | sort | uniq -c | sort -rn | head -5 | chartscii -c blue -t "Processes by User"
+ps aux | awk 'NR>1 {print $1}' | sort | uniq -c | sort -rn | head -5 | npx chartscii -c blue -t "Processes by User"
 ```
-
-## Performance
-
-- **Ultra fast** - < 100ms for most datasets
-- **Efficient parsing** - Handles large datasets
-- **Minimal dependencies** - Small install size
-- **Memory efficient** - Streams large files
-- **Smart detection** - Auto-detects formats without configuration
-
-## Why Terminal Charts?
-
-✅ **Universal** - Works on any system with a terminal
-✅ **Scriptable** - Easy to automate and integrate
-✅ **SSH-friendly** - Visualize data on remote servers
-✅ **CI/CD ready** - Perfect for build pipelines
-✅ **No browser needed** - Lightweight and fast
-✅ **Git-friendly** - Text-based, version controllable
 
 ## API
 
@@ -930,28 +913,7 @@ const chart = new Chartscii([1, 2, 3, 4, 5], {
 console.log(chart.create());
 ```
 
-## Contributing
-
-Found a bug? Have a feature request? PRs welcome!
-
-```bash
-git clone https://github.com/tool3/chartscii-cli
-cd chartscii-cli
-npm install
-npm test
-npm run build
-```
-
 ## License
 
 MIT © [Tal Hayut](https://github.com/tool3)
 
----
-
-<div align="center">
-
-**Made with ❤️ for developers who love the terminal**
-
-[⭐ Star on GitHub](https://github.com/tool3/chartscii-cli) • [📦 View on npm](https://www.npmjs.com/package/chartscii-cli) • [🐛 Report Bug](https://github.com/tool3/chartscii-cli/issues)
-
-</div>
