@@ -52,12 +52,33 @@ Pipe any data — numbers, CSV, JSON, `du`, `git log`, anything — and get a be
 ---
 
 ## Installation
+Note that bin is registered under `chartscii` if installed.   
+If you are using npx you must use the prefix: `npx chartscii-cli`
 
-```bash
-npm install -g chartscii-cli
+### Homebrew (macOS/Linux)
+
+```sh
+brew install tool3/tap/chartscii
 ```
 
-Then `chartscii` is on your `$PATH`. Don't want to install globally? Use `npx chartscii`.
+### Shell script (macOS/Linux)
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/tool3/chartscii-cli/master/scripts/install.sh | bash
+```
+
+### npm
+
+```sh
+# Use directly with npx (no install needed)
+npx chartscii-cli --help
+
+# Or install globally
+npm install -g chartscii-cli
+
+# Or add to your project
+npm install chartscii-cli -D
+```
 
 ---
 
