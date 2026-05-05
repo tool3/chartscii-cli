@@ -300,13 +300,24 @@ function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
     clean.labelFormat = (label: string) => labelFormatStr.replace(/\{label\}/g, label);
   }
 
-  // Handle value-label-format: convert string template to function
+  // Handle value-label-format: convert string template to function.
+  // The lib calls valueLabelFormat with an array: `[v]` for regular bars,
+  // `[v0, v1, v2, …]` for stacked. Templates support:
+  //   {value}     → values joined with `|` (matches the lib's default)
+  //   {value:N}   → segment at index N (or '' if out of range)
+  //   {sep}       → join character ('|' by default)
   // Note: yargs creates both 'value-label-format' and 'valueLabelFormat' keys
   const valueLabelFormatStr = clean['value-label-format'] || '';
   delete clean['value-label-format'];
   delete clean.valueLabelFormat;
   if (valueLabelFormatStr) {
-    clean.valueLabelFormat = (value: string) => valueLabelFormatStr.replace(/\{value\}/g, value);
+    clean.valueLabelFormat = (values: string[]) => {
+      const arr = Array.isArray(values) ? values : [String(values)];
+      let result = valueLabelFormatStr;
+      result = result.replace(/\{value:(\d+)\}/g, (_: string, idx: string) => arr[parseInt(idx, 10)] ?? '');
+      result = result.replace(/\{value\}/g, arr.join('|'));
+      return result;
+    };
   }
 
   const structure: any = {};

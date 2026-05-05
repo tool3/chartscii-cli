@@ -196,5 +196,34 @@ describe('config', () => {
       const opts = config.buildOptions({} as any);
       expect(opts.legend).to.be.undefined;
     });
+
+    test('should build labelFormat from {label} template', () => {
+      const opts = config.buildOptions({ 'label-format': '[{label}]' } as any);
+      expect(opts.labelFormat).to.be.a('function');
+      expect(opts.labelFormat!('Q1')).to.equal('[Q1]');
+    });
+
+    test('should build valueLabelFormat that handles single values', () => {
+      const opts = config.buildOptions({ 'value-label-format': '${value}' } as any);
+      expect(opts.valueLabelFormat).to.be.a('function');
+      expect((opts as any).valueLabelFormat(['100'])).to.equal('$100');
+    });
+
+    test('should join stacked values with `|` for {value} placeholder', () => {
+      const opts = config.buildOptions({ 'value-label-format': '${value}' } as any);
+      expect((opts as any).valueLabelFormat(['100', '50', '30'])).to.equal('$100|50|30');
+    });
+
+    test('should support indexed {value:N} placeholders for stacked', () => {
+      const opts = config.buildOptions({
+        'value-label-format': '{value:0}↑{value:1}↓{value:2}',
+      } as any);
+      expect((opts as any).valueLabelFormat(['100', '50', '30'])).to.equal('100↑50↓30');
+    });
+
+    test('should return empty for {value:N} out-of-range index', () => {
+      const opts = config.buildOptions({ 'value-label-format': '{value:5}' } as any);
+      expect((opts as any).valueLabelFormat(['100'])).to.equal('');
+    });
   });
 });

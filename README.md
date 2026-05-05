@@ -8,7 +8,7 @@
 
 ### Beautiful ASCII charts straight from your shell.
 
-Pipe any data — numbers, CSV, JSON, `du`, `git log`, anything — and get a fully colored, gradient-able, themable chart back. Six chart types, no config files, no setup.
+Pipe any data — numbers, CSV, JSON, `du`, `git log`, anything — and get a beautiful chart. Multiple chart types, no config files, no setup.
 
 [![npm](https://img.shields.io/badge/npm-v10-blue)](https://www.npmjs.com/package/chartscii-cli)
 [![npm downloads](https://img.shields.io/npm/dm/chartscii)](https://www.npmjs.com/package/chartscii-cli)
@@ -366,10 +366,20 @@ chartscii data.csv -p
 
 ### Custom label format
 
-`-L` / `--label-format` and `-F` / `--value-label-format` accept a template with `{label}` / `{value}`:
+`-L` / `--label-format` and `-F` / `--value-label-format` accept a template string:
+
+| Placeholder | Where | Description |
+|---|---|---|
+| `{label}` | `-L` | The row label (with percentage if `-p` is on) |
+| `{value}` | `-F` | The value — for stacked bars, all segment values joined with `\|` |
+| `{value:N}` | `-F` | The N-th segment value (0-indexed). Out-of-range → empty |
 
 ```bash
+# wrap labels in brackets, suffix values with €
 chartscii data.csv -L "[{label}]" -F "{value}€"
+
+# stacked: control each segment individually
+echo -e "Q1 100|50|30\nQ2 120|60|40" | chartscii -K -F '{value:0}↑{value:1}↓{value:2}' -I red green blue
 ```
 
 ---
@@ -510,7 +520,7 @@ watch -n 1 "find . -name '*.ts' | wc -l | chartscii -t 'TS Files'"
 | `-P` | `--value-labels-prefix` | — | Prefix (e.g. `$`, `€`) |
 | `-V` | `--value-labels-floating-point` | `2` | Decimal places |
 | `-L` | `--label-format` | — | Template with `{label}` placeholder |
-| `-F` | `--value-label-format` | — | Template with `{value}` placeholder |
+| `-F` | `--value-label-format` | — | Template with `{value}` (or `{value:N}` for stacked segments) |
 
 ### Layout
 
