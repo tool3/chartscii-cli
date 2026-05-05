@@ -37,6 +37,14 @@ export function calculateBarAreaWidth(
   data: InputData[],
   options: Partial<CustomizationOptions>
 ): number {
+  // Non-bar chart types render onto a fixed-width canvas; the lib uses
+  // `width` directly. Only the bar formatters consume the label / structure
+  // / value-label gutter that this function compensates for.
+  const type = (options as any).type;
+  if (type && type !== 'bar') {
+    return Math.max(10, targetWidth);
+  }
+
   const orientation = options.orientation || 'horizontal';
   const isNaked = options.naked || false;
   const hasLabels = options.labels !== false; // default is true

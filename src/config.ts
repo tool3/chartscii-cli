@@ -25,6 +25,54 @@ export function getDefaults(): CustomizationOptions {
   };
 }
 
+/**
+ * Parse the user-facing `--color` value into the shape chartscii expects.
+ *
+ * - `gradient(...)` → preserved as a single string
+ * - `key:value,key:value` → status color map (Record<string, string>)
+ * - `red,green,blue` → string[] for per-series / [bull, bear]
+ * - anything else → string
+ *
+ * Commas inside parentheses are not split (so multi-stop gradients survive).
+ */
+function parseColorValue(value: string): string | string[] | Record<string, string> {
+  const trimmed = value.trim();
+
+  if (/^gradient\s*\(/i.test(trimmed)) return trimmed;
+
+  // Split on commas not inside parentheses.
+  const parts: string[] = [];
+  let depth = 0;
+  let buf = '';
+  for (const ch of trimmed) {
+    if (ch === '(') depth++;
+    else if (ch === ')') depth = Math.max(0, depth - 1);
+    if (ch === ',' && depth === 0) {
+      parts.push(buf.trim());
+      buf = '';
+      continue;
+    }
+    buf += ch;
+  }
+  if (buf.trim()) parts.push(buf.trim());
+
+  if (parts.length <= 1) return trimmed;
+
+  // Status color map: every entry has a `:` separator.
+  if (parts.every(p => /^[^:]+:[^:]+$/.test(p))) {
+    const map: Record<string, string> = {};
+    for (const part of parts) {
+      const idx = part.indexOf(':');
+      const key = part.slice(0, idx).trim();
+      const val = part.slice(idx + 1).trim();
+      if (key) map[key] = val;
+    }
+    return map;
+  }
+
+  return parts;
+}
+
 export function buildOptions(options: Partial<CustomizationOptions>): CustomizationOptions {
   const clean = cleanYargsOptions(options);
   const defaults = getDefaults();
@@ -52,7 +100,23 @@ export function buildOptions(options: Partial<CustomizationOptions>): Customizat
   }
 
   if (config.height === undefined) {
-    config.height = config.orientation === 'horizontal' ? 1 : 20;
+    const type = (config as any).type;
+    if (type && type !== 'bar') {
+      // line / step / scatter / candlestick / status need vertical space —
+      // match the lib's default of 10.
+      config.height = 10;
+    } else {
+      config.height = config.orientation === 'horizontal' ? 1 : 20;
+    }
+  }
+
+  // Default sort to off for non-bar chart types when the user didn't set it.
+  // line / step / scatter / candlestick / status are typically already
+  // ordered along the x-axis and sorting would scramble them. The CLI
+  // default of true still applies to bar charts; --sort / --no-sort wins.
+  const type = (config as any).type;
+  if (type && type !== 'bar' && (clean as any).sort === undefined) {
+    config.sort = false;
   }
 
   return config as CustomizationOptions;
@@ -66,10 +130,11 @@ function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
   delete clean.help;
   delete clean.version;
 
-  if (clean.color === '') {
+  if (clean.color === '' || clean.color === undefined) {
     delete clean.color;
+  } else if (typeof clean.color === 'string') {
+    clean.color = parseColorValue(clean.color);
   }
-  // Gradient strings like "gradient(red,blue)" are now parsed by chartscii itself
 
   if (clean.theme === '') delete clean.theme;
   if (clean['fill-color'] === '') delete clean['fill-color'];
@@ -171,6 +236,58 @@ function cleanYargsOptions(options: any): Partial<CustomizationOptions> {
     delete clean['stack-value-labels'];
     if (clean.stackValueLabels) {
       clean.valueLabels = true;
+    }
+  }
+
+  if (clean['point-char'] !== undefined) {
+    if (clean['point-char'] !== '') {
+      clean.pointChar = clean['point-char'];
+    }
+    delete clean['point-char'];
+  }
+  if (clean.pointChar === '') delete clean.pointChar;
+
+  if (clean['rich-labels'] !== undefined) {
+    clean.richLabels = clean['rich-labels'];
+    delete clean['rich-labels'];
+  }
+
+  // Drop default 'bar' to avoid forcing the option into the merged config —
+  // the lib defaults to 'bar' on its own and this leaves room for callers
+  // who passed a non-default `type` via the API path.
+  if (clean.type === 'bar') delete clean.type;
+
+  // Build legend config from --legend / --legend-position / --legend-align /
+  // --legend-values flags. Single boolean stays a boolean; combined flags
+  // become a LegendConfig object.
+  const legendEnabled = clean.legend;
+  const legendPosition = clean['legend-position'];
+  const legendAlign = clean['legend-align'];
+  const legendValuesRaw = clean['legend-values'];
+  delete clean.legend;
+  delete clean['legend-position'];
+  delete clean['legend-align'];
+  delete clean['legend-values'];
+  delete clean.legendPosition;
+  delete clean.legendAlign;
+  delete clean.legendValues;
+
+  const legendValues = Array.isArray(legendValuesRaw) && legendValuesRaw.length > 0
+    ? legendValuesRaw.map((v: unknown) => String(v))
+    : undefined;
+  const legendPositionExplicit = legendPosition && legendPosition !== 'top' ? legendPosition : undefined;
+  const legendAlignExplicit = legendAlign && legendAlign !== 'left' ? legendAlign : undefined;
+
+  if (legendEnabled || legendValues || legendPositionExplicit || legendAlignExplicit) {
+    if (!legendValues && !legendPositionExplicit && !legendAlignExplicit) {
+      clean.legend = true;
+    } else {
+      clean.legend = {
+        enabled: true,
+        ...(legendValues && { values: legendValues }),
+        ...(legendPositionExplicit && { position: legendPositionExplicit }),
+        ...(legendAlignExplicit && { align: legendAlignExplicit }),
+      };
     }
   }
 

@@ -117,5 +117,84 @@ describe('config', () => {
       expect(opts.padding).to.equal(0);
       expect(opts.barSize).to.equal(0);
     });
+
+    test('should pass through chart type', () => {
+      const opts = config.buildOptions({ type: 'line' } as any);
+      expect((opts as any).type).to.equal('line');
+    });
+
+    test('should drop default bar type', () => {
+      const opts = config.buildOptions({ type: 'bar' } as any);
+      expect(opts).to.not.have.property('type');
+    });
+
+    test('should default sort to false for non-bar types', () => {
+      const opts = config.buildOptions({ type: 'line' } as any);
+      expect(opts.sort).to.be.false;
+    });
+
+    test('should respect explicit sort on non-bar types', () => {
+      const opts = config.buildOptions({ type: 'line', sort: true } as any);
+      expect(opts.sort).to.be.true;
+    });
+
+    test('should pass through variant, points, pointChar, richLabels', () => {
+      const opts = config.buildOptions({
+        type: 'step',
+        variant: 'smooth',
+        points: true,
+        'point-char': '◈',
+        'rich-labels': false,
+      } as any);
+      expect((opts as any).variant).to.equal('smooth');
+      expect((opts as any).points).to.be.true;
+      expect((opts as any).pointChar).to.equal('◈');
+      expect((opts as any).richLabels).to.be.false;
+    });
+
+    test('should split comma color into per-series array', () => {
+      const opts = config.buildOptions({ color: 'red,green,blue' } as any);
+      expect(opts.color).to.deep.equal(['red', 'green', 'blue']);
+    });
+
+    test('should preserve gradient string', () => {
+      const opts = config.buildOptions({ color: 'gradient(red,blue)' } as any);
+      expect(opts.color).to.equal('gradient(red,blue)');
+    });
+
+    test('should parse status color map', () => {
+      const opts = config.buildOptions({ color: '0:red,1:green,2:yellow' } as any);
+      expect(opts.color).to.deep.equal({ '0': 'red', '1': 'green', '2': 'yellow' });
+    });
+
+    test('should keep single color as string', () => {
+      const opts = config.buildOptions({ color: 'auto' } as any);
+      expect(opts.color).to.equal('auto');
+    });
+
+    test('should build legend config from sub-options', () => {
+      const opts = config.buildOptions({
+        legend: true,
+        'legend-position': 'bottom',
+        'legend-align': 'right',
+        'legend-values': ['Q1', 'Q2', 'Q3'],
+      } as any);
+      expect(opts.legend).to.deep.equal({
+        enabled: true,
+        values: ['Q1', 'Q2', 'Q3'],
+        position: 'bottom',
+        align: 'right',
+      });
+    });
+
+    test('should set legend to true when only --legend is passed', () => {
+      const opts = config.buildOptions({ legend: true } as any);
+      expect(opts.legend).to.be.true;
+    });
+
+    test('should leave legend unset when not requested', () => {
+      const opts = config.buildOptions({} as any);
+      expect(opts.legend).to.be.undefined;
+    });
   });
 });

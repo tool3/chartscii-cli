@@ -33,6 +33,68 @@ function createParser() {
     .example('$0 1 2 3 -c green -t "My Chart"', 'Chart with options')
     .example('$0 1 2 3 -f -o vertical', 'Vertical chart with fill')
     .example('$0 1 2 3 4 5 -c "gradient(red,yellow,green)"', 'Gradient colors')
+    .example('$0 series.json --type line --points', 'Line chart with point markers')
+    .example('$0 candles.json --type candlestick -c "green,red"', 'Candlestick with bull/bear colors')
+    .example('$0 status.json --type status -c "0:red,1:green,2:yellow"', 'Status chart with color map')
+
+    .option('type', {
+      alias: 'Y',
+      type: 'string',
+      description: 'Chart type',
+      choices: ['bar', 'line', 'step', 'scatter', 'candlestick', 'status'],
+      default: 'bar'
+    })
+    .option('variant', {
+      alias: 'N',
+      type: 'string',
+      description: 'Chart variant for line/step (sharp or smooth corners)',
+      choices: ['sharp', 'smooth'],
+      default: 'sharp'
+    })
+    .option('points', {
+      alias: 'O',
+      type: 'boolean',
+      description: 'Draw a marker at each data point on line/step charts',
+      default: false
+    })
+    .option('point-char', {
+      alias: 'H',
+      type: 'string',
+      description: 'Character used for point markers (also scatter\'s default marker)',
+      default: ''
+    })
+    .option('rich-labels', {
+      alias: 'R',
+      type: 'boolean',
+      description: 'Enable styl3 rich text decorators in labels (*bold*, %italic%, !underline!, @invert@)',
+      default: true
+    })
+    .option('legend', {
+      alias: 'g',
+      type: 'boolean',
+      description: 'Show a legend (multi-series line/step/scatter, candlestick, status)',
+      default: false
+    })
+    .option('legend-position', {
+      alias: 'B',
+      type: 'string',
+      description: 'Legend position',
+      choices: ['top', 'bottom'],
+      default: 'top'
+    })
+    .option('legend-align', {
+      alias: 'M',
+      type: 'string',
+      description: 'Legend alignment',
+      choices: ['left', 'center', 'right'],
+      default: 'left'
+    })
+    .option('legend-values', {
+      alias: 'U',
+      type: 'array',
+      description: 'Legend entry labels (space-separated)',
+      default: []
+    })
 
     .option('title', {
       alias: 't',
@@ -213,8 +275,7 @@ function createParser() {
     .option('sort', {
       alias: 's',
       type: 'boolean',
-      description: 'Sort data',
-      default: true
+      description: 'Sort data (default: true for bar charts, false otherwise)'
     })
     .option('reverse', {
       alias: 'r',
@@ -255,33 +316,39 @@ function createParser() {
     })
 
     .option('list-themes', {
+      alias: 'm',
       type: 'boolean',
       description: 'List all available color themes',
       default: false
     })
 
     .option('animate', {
+      alias: 'e',
       type: 'boolean',
       description: 'Animate the chart (bars grow from 0)',
       default: false
     })
     .option('animate-duration', {
+      alias: 'W',
       type: 'number',
       description: 'Animation duration in milliseconds',
       default: 1000
     })
     .option('animate-fps', {
+      alias: 'Z',
       type: 'number',
       description: 'Animation frames per second',
       default: 60
     })
     .option('animate-easing', {
+      alias: 'X',
       type: 'string',
       description: 'Animation easing function',
       choices: ['linear', 'easeIn', 'easeOut', 'easeInOut'],
       default: 'easeOut'
     })
     .option('animate-step', {
+      alias: 'Q',
       type: 'number',
       description: 'Animation step size (0-1, e.g. 0.1 for 10 steps). Overrides fps when set.'
     })

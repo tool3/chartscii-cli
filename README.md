@@ -1,28 +1,55 @@
-# chartscii-cli
-
-> Transform data into stunning terminal charts in seconds.
-
 <div align="center">
 
-[![npm version](https://img.shields.io/npm/v/chartscii-cli.svg)](https://www.npmjs.com/package/chartscii-cli)
-[![npm downloads](https://img.shields.io/npm/dm/chartscii-cli.svg)](https://www.npmjs.com/package/chartscii-cli)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+# chartscii-cli
+
+`chartscii data.csv -c auto`
+
+![csv](examples/svgs/csv.svg)
+
+### Beautiful ASCII charts straight from your shell.
+
+Pipe any data — numbers, CSV, JSON, `du`, `git log`, anything — and get a fully colored, gradient-able, themable chart back. Six chart types, no config files, no setup.
+
+[![npm](https://img.shields.io/badge/npm-v10-blue)](https://www.npmjs.com/package/chartscii-cli)
+[![npm downloads](https://img.shields.io/npm/dm/chartscii)](https://www.npmjs.com/package/chartscii-cli)
+[![license](https://img.shields.io/badge/license-MIT-orange)](./LICENSE)
 
 </div>
 
-```bash
-chartscii data.csv -c auto
-```
-![csv](examples/svgs/csv.svg)
+---
 
+## What's new
 
-## Why chartscii?
+- ✅ **Smart content parsing** — auto-detects JSON, CSV, plain numbers, label+value pairs (in either order), size suffixes (`K`/`M`/`G`/`T` from `du -sh`), and numbers buried in strings (`$1,500`, `Price: 99.99`)
+- ✅ **Auto width & height** — `-w auto` / `-h auto` snaps to your terminal dimensions; on horizontal charts, `-w 80` produces output that *actually* fits in 80 columns (gutters and structure included)
+- ✅ **Auto file detection** — pass the path directly (`chartscii data.csv`), no `--file` flag needed
+- ✅ **CLI-friendly color shorthand** — `-c "red,green,blue"` for per-series, `-c "0:red,1:green"` for status maps, `-c "gradient(red,blue:vertical:reverse)"` for gradients — all parsed from one flag
+- ✅ **Type-aware defaults** — `--sort` defaults off and `--height` jumps to 10 for non-bar chart types, so `-Y line` / `-Y candlestick` / `-Y status` look right out of the box
+- ✅ **Six chart types from one binary** — `bar`, `line`, `step`, `scatter`, `candlestick`, `status` — switch with `-Y`
+- ✅ **Pipe-first design** — works with `du`, `git log`, `ps`, `find`, `wc`, `awk` output, or anything else that emits text on stdout
 
-**Fast.** Create beautiful charts in one command. No config files, no setup, just data.
+---
 
-**Flexible.** Works with any data source: numbers, CSV, JSON, stdin, or files.
+## Table of contents
 
-**Beautiful.** Customizable colors, themes, and styling. Looks great in any terminal.
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Chart types](#chart-types)
+  - [Bar](#bar-default)
+  - [Line](#line)
+  - [Step](#step)
+  - [Scatter](#scatter)
+  - [Candlestick](#candlestick)
+  - [Status](#status)
+- [Input formats](#input-formats)
+- [Styling](#styling)
+- [Stacked bars](#stacked-bars)
+- [Animation](#animation)
+- [Recipes & shell helpers](#recipes--shell-helpers)
+- [Options reference](#options-reference)
+- [License](#license)
+
+---
 
 ## Installation
 
@@ -30,582 +57,187 @@ chartscii data.csv -c auto
 npm install -g chartscii-cli
 ```
 
-## Quick Start
+Then `chartscii` is on your `$PATH`. Don't want to install globally? Use `npx chartscii`.
+
+---
+
+## Quick start
 
 ```bash
-# From numbers
+# from positional numbers
 chartscii 10 20 30 40 50
 
-# From a file (auto-detected - no flag needed!)
+# from a file (auto-detected)
 chartscii data.csv
 chartscii data.json
 
-# From stdin
+# from stdin
 echo "1 2 3 4 5" | chartscii
 seq 1 20 | chartscii
 
-# From shell commands (auto-parsed!)
+# from shell pipelines (sizes, columns, anything numeric)
 du -sh * | chartscii -c auto
-
-# With options
-chartscii 1 2 3 -c green -t "Sales" -p
 ```
 
-## CLI-Unique Features
+That's it — point any data source at `chartscii` and you get a chart.
 
-### 🎨 Auto Color Cycling
-Use `--color auto` or `-c auto` to automatically cycle through colors for each bar:
+![json](examples/svgs/json.svg)
 
-```bash
-chartscii data.csv -c auto
-chartscii 10 20 30 40 50 -c auto -t "Rainbow Chart"
-```
+---
 
-Colors cycle through: red → green → yellow → blue → purple → cyan → pink → orange → marine
+## Chart types
 
-### 📏 Opt-in Fill Character
-The fill character is opt-in only. Use it three ways:
+Switch the renderer with `-Y` / `--type`. Every type shares the core options (`-w`, `-h`, `-t`, `-k`, `-c`, `-n`, …) and adds its own knobs.
 
-```bash
-# No fill (default behavior)
-chartscii 1 2 3
+| Type | Best for | Key flags |
+|---|---|---|
+| [`bar`](#bar-default) (default) | rankings, totals, categorical comparisons | `-o`, `-E`, `-I`/`-J`/`-K` (stacked) |
+| [`line`](#line) | trends over time, multi-series | `-c "a,b,c"` (per-series), `-g` |
+| [`step`](#step) | piecewise-constant state | `-N sharp`/`smooth`, `-O` |
+| [`scatter`](#scatter) | sparse points, distributions | `-H`, `-C` |
+| [`candlestick`](#candlestick) | OHLC market data | `-c "bull,bear"`, `-b` |
+| [`status`](#status) | dashboards, health grids | `-c "key:color,..."`, `-g` |
 
-# Fill with default character (▒)
-chartscii 1 2 3 -f
-chartscii 1 2 3 --fill
-
-# Fill with custom character
-chartscii 1 2 3 -f "░"
-chartscii 1 2 3 --fill "·"
-```
-
-### 🔍 Smart Data Parsing
-Automatically handles shell command outputs with size suffixes and mixed formats:
-
-```bash
-# File count for current directory
-du -sh * | chartscii -c auto -k pastel
-```
-![file count](examples/svgs/file-count.svg)
-
-```bash
-# Parses "CONTRIBUTING.md 8.0K" format
-ls -lh | awk '{print $9" "$5}' | chartscii -c auto
-```
-![file size](examples/svgs/file-size.svg)
-
-```bash
-# Extracts numbers from strings like "$1,500" or "Price: 99.99"
-# sales.txt:
-#  Oranges    12.99$
-#  Apples     10.99$
-#  Bananas    9.99$
-#  Pineapples 13.99$
-#  Pears      11.99$
-
-cat sales.txt | chartscii -c auto
-```
-![sales](examples/svgs/sales.svg)
-
-Supports size suffixes: K, M, G, T (automatically converted to numeric values)
-
-### 📁 Automatic File Detection
-No need for a file flag - just pass the path:
-
-```bash
-chartscii data.json
-chartscii stats.csv
-chartscii /path/to/data.txt
-```
-
-### 📊 Stacked Charts
-Full support for stacked bar charts with multiple segments:
-
-```bash
-# Stacked data with custom colors and labels
-chartscii stacked.json \
-  --stack-labels Frontend Backend DevOps \
-  --stack-colors red green blue \
-  --stack-value-labels
-```
-
-### 🎨 Advanced Styling
-New styling options for even more customization:
-
-```bash
-# Colored fill character
-chartscii data.csv -f "." --fill-color blue
-
-# Bar alignment (center, top, bottom, justify for horizontal)
-chartscii 10 20 30 --align-bars center -h 10
-
-# Vertical alignment (center, left, right, justify)
-chartscii 10 20 30 -o vertical --align-bars center
-```
-
-## Quick Working Examples
-
-Try these verified examples that work out of the box:
-```bash
-# Visualizes the volatility of your recent work by stacking Insertions (+) vs Deletions (-) for the last 10 commits. This gives an instant visual indicator of whether the team is building (mostly green) or refactoring (mostly red).
-git log --pretty=format:"%h" --numstat -10 | \
-awk 'NF==3 {plus+=$1; minus+=$2} NF==1 {if(h) print h" "plus"|"minus; h=$1; plus=0; minus=0} END {print h" "plus"|"minus}' | \
-chartscii -J -k pastel -I green red -c auto --no-sort
-```
-![code churn](examples/svgs//code-churn.svg)
-
-
-```bash
-# last 10 days number of commits per hour
-git log --since="10 days ago" --author="talhayut.dev@gmail.com" --date=format-local:'%Y-%m-%d %H:00' --format='%ad' | sort | uniq -c | awk '{count=$1; $1=""; print $0, count}' | sed 's/^ //' | chartscii -c "gradient(gold,firebrick)"
-```
-
-```bash
-ps aux | sort -rn -k 10 | head -n 5 | \
-awk '{ 
-    rss=$6/1024; 
-    split($11, a, "/"); 
-    name=a[length(a)]; 
-    sub(/^-/, "", name);
-    printf "%s %d\n", name, rss, rss 
-}' | npx chartscii -c "gradient(green,red)" -k beach -v
-
-```
-
-
-```bash
-# project file distribution
-find . -type f -not -path '*/.*' -not -path './node_modules/*' | \
-sed 's/.*\.//' | sort | uniq -c | sort -nr | head -n 10 | \
-npx chartscii -c "gradient(cyan, magenta)" -v
-```
-![file distro](examples/svgs/file-distro.svg)
-
-
-
-```bash
-# Fibonacci sequence visualization
-echo "1 1 2 3 5 8 13 21 34 55" | tr ' ' '\n' | npx chartscii -t "Fibonacci" -c purple
-
-# Random data
-for i in {1..10}; do echo $((RANDOM % 100)); done | chartscii -c auto -t "Random"
-
-# Lines of code per file
-wc -l src/*.ts | grep -v total | awk '{print $2" "$1}' | chartscii -c green -t "LOC"
-
-# Git commit count
-git log --oneline | wc -l | chartscii -t "Total Commits" -c yellow
-
-# Test results
-npm test 2>&1 | grep "passing" | awk '{print "Passed "$1}' | chartscii -c green
-
-# Stacked chart (v4) - with colors and value labels
-chartscii examples/example-stacked.json -I red green blue -K
-
-# Fill with color (v4) - using short alias
-echo "10 20 30" | chartscii -f "." -G blue -t "Colored Fill"
-
-# Full terminal width (v4)
-du -sh */ | chartscii -w auto -c auto -t "Full Width Chart"
-
-# Auto width and height
-seq 1 20 | chartscii -w auto -c auto -o vertical -t "Full Terminal"
-```
-
-## Complete Options Reference
-
-### Display Options
-
-| Short | Long | Type | Default | Description |
-|-------|------|------|---------|-------------|
-| `-t` | `--title` | string | '' | Chart title |
-| `-l` | `--labels` | boolean | true | Display labels |
-| `-C` | `--color-labels` | boolean | true | Color labels |
-| `-p` | `--percentage` | boolean | false | Display percentages |
-| `-v` | `--value-labels` | boolean | false | Display value labels on bars |
-| `-P` | `--value-labels-prefix` | string | '' | Prefix for value labels (e.g., "$", "€") |
-| `-V` | `--value-labels-floating-point` | number | 2 | Decimal places for value labels |
-
-### Layout Options
-
-| Short | Long | Type | Default | Description |
-|-------|------|------|---------|-------------|
-| `-o` | `--orientation` | string | 'horizontal' | Chart orientation (horizontal, vertical) |
-| `-w` | `--width` | number/string | 80 | Chart width (number or **`auto`** for terminal width) |
-| `-h` | `--height` | number/string | 20 | Chart height (number or **`auto`** for terminal height) |
-| `-b` | `--bar-size` | number | 1 | Bar size (thickness) |
-| `-d` | `--padding` | number | 1 | Padding between bars |
-
-### Styling Options
-
-| Short | Long | Type | Default | Description |
-|-------|------|------|---------|-------------|
-| `-c` | `--color` | string | '' | Bar color (name, hex, ANSI, **`auto`** for cycling, or **`gradient(...)`** for gradients) |
-| `-k` | `--theme` | string | '' | Color theme (see themes below) |
-| `-z` | `--char` | string | '█' | Character for bars |
-| `-f` | `--fill` | string | undefined | **Opt-in** fill character (▒ if flag alone, custom if value) |
-| `-G` | `--fill-color` | string | '' | Color for the fill character |
-|  | `--scale` | string | 'auto' | Scale mode (auto or number for max value) |
-| `-E` | `--align-bars` | string | '' | Bar alignment (horizontal: top/center/bottom/justify, vertical: left/center/right/justify) |
-
-### Structure Options
-
-| Short | Long | Type | Default | Description |
-|-------|------|------|---------|-------------|
-| `-n` | `--naked` | boolean | false | Display without structure characters |
-| `-x` | `--structure-x` | string | '═' | Horizontal structure character |
-| `-y` | `--structure-y` | string | '╢' | Vertical structure character |
-| `-a` | `--structure-axis` | string | '║' | Axis structure character |
-| `-q` | `--structure-bottom-left` | string | '╚' | Bottom-left corner character |
-
-### Data Options
-
-| Short | Long | Type | Default | Description |
-|-------|------|------|---------|-------------|
-| `-s` | `--sort` | boolean | true | Sort data |
-| `-r` | `--reverse` | boolean | false | Reverse the chart |
-
-### Stacked Chart Options
-
-| Short | Long | Type | Default | Description |
-|-------|------|------|---------|-------------|
-| `-I` | `--stack-colors` | array | [] | Colors for stacked segments (space-separated) |
-| `-J` | `--stack-labels` | array | [] | Labels for stacked segments *(not yet implemented in chartscii v4)* |
-| `-K` | `--stack-value-labels` | boolean | false | Show pipe-separated values on bars (e.g., "100\|50\|30") - auto-enables `-v` |
-
-### Utility Options
-
-| Short | Long | Type | Default | Description |
-|-------|------|------|---------|-------------|
-|  | `--list-themes` | boolean | false | List all available color themes |
-|  | `--help`, `-?` | boolean | | Show help |
-|  | `--version` | boolean | | Show version |
-
-## Important Notes
-
-### Auto Width and Height
-
-When using `-w auto` or `-h auto`, the terminal dimensions are used (falling back to 80x20 when piped).
-
-**Width Behavior**:
-
-For **horizontal charts**, width now works as expected:
-- `-w 80` produces output that fits exactly in 80 characters
-- The CLI automatically calculates the bar area width accounting for labels and structure
-- Works correctly with labels, percentages, value labels, and all options
-
-For **vertical charts**, width is approximate:
-- `-w 80` aims for 80-character output but may be slightly wider
-- This is due to the library's auto-calculation of bar sizing and padding
-- For precise width control, use explicit `-b` (barSize) and `-d 0` (no padding)
-- Example: `seq 1 20 | chartscii -w 80 -o vertical -b 3 -d 0`
-
-### Padding Behavior
-
-The `-d` (padding) parameter controls the blank lines between bars in horizontal charts (or spaces between bars in vertical charts):
-- `-d 0`: No spacing between bars
-- `-d 1`: 1 blank line between bars (except after the last bar)
-- `-d 2`: 2 blank lines between bars (except after the last bar)
-
-**Note**: When the specified `height` is larger than needed for the bars and padding, extra blank lines are added to fill the vertical space. To see minimal padding, use a smaller height value (e.g., `-h 10` for a few bars).
-
-## Examples
-```bash
-chartscii examples/example.csv -c auto -p --no-sort -k beach
-```
-![csv](examples/svgs/csv.svg)
+### Bar (default)
 
 ```bash
 chartscii examples/example.json -k pastel
 ```
-![csv](examples/svgs/json.svg)
+
+![bar](examples/svgs/json.svg)
+
+Vertical orientation with a gradient fill:
 
 ```bash
-chartscii examples/example-stacked-color-overrides.json -I marine pink purple -k pastel
+seq 1 12 | chartscii -o vertical -c "gradient(cyan,purple)" -f "░" -G auto -w auto
 ```
-![csv](examples/svgs/stacked-override.svg)
+
+![vertical-gradient](examples/svgs/vertical-reverse-gradient.svg)
+
+### Line
+
+Smooth 45° polyline through your data. Single- or multi-series.
 
 ```bash
-chartscii examples/example-stacked.csv -c auto -p -k sport
+echo "20 35 28 50 65 45 70 60 85 75 90 80" | \
+  chartscii -Y line -c "gradient(cyan,purple)" -t "Monthly Trend" -w 80
 ```
-![csv](examples/svgs/stacked-csv.svg)
 
+![line](examples/svgs/line.svg)
 
-### Basic Charts
+**Multi-series** — pipe a JSON `InputData[][]` (one inner array per data point, one entry per series) and split colors on commas. Add `-g` for a legend, `-U` to label the entries:
 
 ```bash
-# Simple bar chart
-chartscii 5 10 15 20 25
+chartscii series.json -Y line \
+  -c "red,green,blue" \
+  -g -B top -M right -U Q1 Q2 Q3 \
+  -w 100
 ```
-```
-5  ╢████████████████
-10 ╢███████████████████████████████
-15 ╢██████████████████████████████████████████████
-20 ╢█████████████████████████████████████████████████████████████
-25 ╢████████████████████████████████████████████████████████████████████████████
-   ╚════════════════════════════════════════════════════════════════════════════
-```
+
+![line-multi](examples/svgs/line-multi.svg)
+
+### Step
+
+Right-angle transitions for state that's piecewise-constant between samples. `-N smooth` rounds the corners with `╭╮╰╯`.
 
 ```bash
-# Vertical chart
-chartscii 1 2 3 4 5 -o vertical -h 10
-```
-```
-║        █
-║        █
-║      █ █
-║      █ █
-║    █ █ █
-║    █ █ █
-║  █ █ █ █
-║  █ █ █ █
-║█ █ █ █ █
-║█ █ █ █ █
-╚═════════
- 1 2 3 4 5
+echo "10 25 25 40 30 30 55 50 70 65" | \
+  chartscii -Y step -N smooth -O -c "gradient(orange,pink)" -t "Step Smooth" -w 80
 ```
 
-### Using Auto Colors
+![step](examples/svgs/step.svg)
+
+### Scatter
+
+Markers only — no connecting line. `-c auto` cycles the palette per point; `-H` overrides the marker char.
 
 ```bash
-# Cycle through colors automatically
-chartscii 10 20 30 40 50 -c auto -t "Sales by Region"
+echo "12 45 28 65 30 80 55 22 70 90 35 50 60 18" | \
+  chartscii -Y scatter -c auto -H "◈" -t "Distribution" -w 80
 ```
 
-Each bar will have a different color: red, green, yellow, blue, purple, etc.
+![scatter](examples/svgs/scatter.svg)
+
+### Candlestick
+
+OHLC bars with bullish/bearish coloring. Each input point's `value` is `[open, high, low, close]` — feed them as a JSON array. `-c "bull,bear"` sets the two colors; doji (`open == close`) candles render as `─`.
 
 ```bash
-# Auto colors work with stacked charts too!
-echo -e "Q1 100|50|30\nQ2 120|60|40" | chartscii -t "Quarterly"
-# Automatically assigns colors to segments: red, green, yellow
-
-# Combine with themes
-chartscii data.csv -c auto -k neon -t "Neon Rainbow"
+chartscii btc-month.json -Y candlestick \
+  -c "green,red" \
+  -t "BTC/USD — 30d" -w 160 -h 22 -b 2 -d 2
 ```
 
-### Using Fill Characters
+![candlestick](examples/svgs/candlestick.svg)
+
+### Status
+
+A grid of colored cells — perfect for dashboards, host health, build matrices. Each cell's `value` is a status key (number or string) looked up in the `-c` map.
 
 ```bash
-# Default fill character (▒)
-chartscii 1 2 3 -f
-
-# Custom fill character
-chartscii 1 2 3 -f "░" -c green
-
-# ASCII-friendly fill
-chartscii 1 2 3 -f "." -c blue
+chartscii fleet.json -Y status \
+  -c "0:red,1:green,2:yellow,3:blue" \
+  -g -B top -M right -U down ok warning maint \
+  -t "Fleet Status" -w 100 -b 4
 ```
 
-### Value Labels
+![status](examples/svgs/status.svg)
+
+For **row mode** (one labelled row per host, cells along the x-axis), give each input point a `value: number[]` instead of a single key.
+
+---
+
+## Input formats
+
+`chartscii` auto-detects what it's looking at. No `--format` flag needed.
+
+### Plain numbers
 
 ```bash
-# Show values on bars
-chartscii 100 250 500 -v
-
-# With currency prefix
-chartscii 100 250 500 -v -P '$'
-
-# With custom precision
-chartscii 1.234 5.678 9.012 -v -V 3
-
-# Combine prefix and precision
-chartscii 99.99 149.99 199.99 -v -P '€' -V 2
+chartscii 1 2 3 4 5
+echo "10 20 30" | chartscii
+seq 1 100 | chartscii
 ```
 
-### Stacked Charts (v4)
+### Label + value
+
+Both orderings work — chartscii figures it out.
 
 ```bash
-# Simple stacked chart from JSON file
-chartscii examples/example-stacked.json
-
-# Auto-colors for stacked segments (no -I needed!)
-echo -e "Q1 100|50|30\nQ2 120|60|40" | chartscii -t "Auto Stack Colors"
-# Automatically uses: red, green, yellow for segments
-
-# With stack labels and colors (using long options)
-chartscii examples/example-stacked.json \
-  --stack-labels Frontend Backend DevOps \
-  --stack-colors red green blue \
-  --stack-value-labels
-
-# Same with short aliases
-chartscii examples/example-stacked.json -J Frontend Backend DevOps -I red green blue -K
-
-# JSON format for stacked data with global colors
-cat > stacked.json << 'EOF'
-[
-  {
-    "label": "Q1",
-    "value": [100, 50, 25],
-    "color": "blue"
-  },
-  {
-    "label": "Q2",
-    "value": [120, 60, 30]
-  }
-]
-EOF
-chartscii stacked.json -J Sales Support Marketing -I cyan yellow purple
+echo -e "Item1 10\nItem2 20\nItem3 30" | chartscii   # label first
+echo -e "10 Item1\n20 Item2\n30 Item3" | chartscii   # number first
 ```
 
-#### Color Override Patterns for Stacked Charts
+### Size suffixes
 
-Stacked charts support three levels of color specification (from highest to lowest priority):
-
-1. **Per-segment colors** (using object format):
-```json
-[
-  {
-    "label": "Q1",
-    "value": [
-      { "value": 100, "color": "blue" },
-      { "value": 50 },
-      { "value": 25, "color": "yellow" }
-    ]
-  }
-]
-```
-
-2. **Per-bar color arrays** (full or partial override):
-```json
-[
-  {
-    "label": "Q1",
-    "value": [100, 50, 25],
-    "color": ["red", "green", "blue"]
-  },
-  {
-    "label": "Q2",
-    "value": [120, 60, 30],
-    "color": ["yellow"]
-  }
-]
-```
-
-3. **Global stackColors** (from CLI options):
-```bash
-chartscii stacked.json -I red green blue
-```
-
-These can be combined for maximum flexibility. Segments without specific colors will fall back to the next level (per-bar array → global stackColors).
-
-#### Stacked Value Labels
-
-Show the individual segment values on each bar:
+`K`, `M`, `G`, `T` are converted automatically. Means `du -sh` Just Works™.
 
 ```bash
-# Show segment values (e.g., "100|50|30")
-chartscii stacked.json -K
-
-# Combine with colors
-chartscii stacked.json -I red green blue -K
-
-# With custom precision
-chartscii stacked.json -K -V 0
+du -sh * | chartscii -c auto -k pastel
 ```
 
-Note: The `-K` flag automatically enables `-v` (value labels), so you don't need both.
+![file-count](examples/svgs/file-count.svg)
 
-### Gradient Colors
+### Mixed strings
 
-Create smooth color gradients across your bars:
+Numbers are extracted from any text — `$1,500`, `Price: 99.99`, `12.99$`.
 
 ```bash
-# Basic gradient (horizontal direction by default)
-chartscii 1 2 3 4 5 -c "gradient(red,yellow,green)"
-
-# Two-color gradient
-chartscii 1 2 3 4 5 6 -c "gradient(cyan,pink)"
-
-# Vertical gradient direction (color by bar position)
-chartscii 1 2 3 4 5 -c "gradient(purple,orange:vertical)"
-
-# Reversed gradient (flip the color direction)
-chartscii 1 2 3 4 5 -c "gradient(purple,cyan:reverse)"
-
-# Combine direction and reverse
-chartscii 1 2 3 4 5 -c "gradient(#9982de,#F8C8DC:vertical:reverse)" -o vertical -f "░" -G auto
-
-# Gradients work with themes (theme colors override named colors)
-chartscii 1 2 3 4 5 -c "gradient(red,green)" -k beach
-
-# Gradients work with value labels (theme colors override named colors)
-chartscii 1 2 3 4 5 -c "gradient(pink,purple)" -k pastel -v
+cat sales.txt | chartscii -c auto
 ```
 
-**Gradient Options:**
-- `gradient(color1,color2,...)` - Basic gradient with multiple color stops
-- `:vertical` - Apply gradient vertically (by bar position) instead of horizontally (by character position)
-- `:reverse` - Reverse the gradient direction
-- Use hex colors: `gradient(#ff0000,#00ff00)`
-- Combine with `-G auto` (fill-color) for matching fill gradients
+![sales](examples/svgs/sales.svg)
 
-### Advanced Styling (v4)
+### CSV
 
-```bash
-# Auto-sizing to terminal dimensions
-chartscii data.json -w auto -t "Full Terminal Width"
-chartscii 10 20 30 -w auto -h auto -o vertical -t "Full Terminal"
-du -sh */ | chartscii -w auto -c auto -t "Full Width Dashboard"
-
-# Colored fill character (long and short)
-chartscii 10 20 30 -f "." --fill-color blue -t "Blue Fill"
-chartscii 10 20 30 -f "." -G cyan -t "Cyan Fill"
-
-# Bar alignment - horizontal (long and short)
-chartscii 10 20 30 --align-bars center -h 10 -t "Centered Bars"
-chartscii 10 20 30 -E top -h 10 -t "Top Aligned"
-
-# Bar alignment - vertical (long and short)
-chartscii 10 20 30 -o vertical --align-bars center -w 60 -t "Centered Vertical"
-chartscii 10 20 30 -o vertical -E left -w 60 -t "Left Aligned"
-```
-
-### Themes
-
-```bash
-# List all available themes
-chartscii --list-themes
-```
-
-Available themes:
-- default, pastel, lush, standard
-- beach, nature, neon, spring
-- pinkish, crayons, sunset, rufus
-- summer, autumn, mint, vintage
-- sport, rainbow, pool, champagne
-
-```bash
-# Use a theme
-chartscii data.json -k pastel -p
-chartscii 10 20 30 -k neon -c auto
-chartscii 5 10 15 -k rainbow -f
-```
-
-### File Inputs
-
-**JSON** (data.json):
-```json
-[10, 20, 30, 40, 50]
-```
-
-Or with labels:
-```json
-[
-  {"label": "Jan", "value": 100},
-  {"label": "Feb", "value": 150},
-  {"label": "Mar", "value": 200}
-]
-```
-
-**CSV** (data.csv):
 ```csv
 JavaScript,68
 TypeScript,56
 Python,43
 ```
 
-**Stacked values** in CSV (multiple formats supported):
+Stacked values support multiple notations:
+
 ```csv
 JavaScript,[68, 21, 23]
 TypeScript,56|11|10
@@ -614,306 +246,347 @@ Go,32,8,4
 ```
 
 ```bash
-# Auto-detected file types
-chartscii data.json
-chartscii data.csv -p -t "Languages"
+chartscii examples/example-stacked.csv -c auto -p -k sport
 ```
 
-Output:
-```
-Languages
-Python (25.75%)     ╢███████████████████████████████████████████████████
-                    ║
-TypeScript (33.53%) ╢██████████████████████████████████████████████████████████████████
-                    ║
-JavaScript (40.72%) ╢████████████████████████████████████████████████████████████████████████████████
-                    ╚════════════════════════════════════════════════════════════════════════════════
+![stacked-csv](examples/svgs/stacked-csv.svg)
+
+### JSON
+
+```json
+[10, 20, 30, 40, 50]
 ```
 
-### Shell Command Integration
+Or with labels and per-bar overrides:
 
-```bash
-# Disk usage (auto-parsed with size suffixes!)
-du -sh * | chartscii -c auto -t "Disk Usage"
-
-# Process memory usage
-ps aux | awk 'NR>1 {print $11" "$4}' | head -10 | chartscii -t "Top Memory"
-
-# File sizes in current directory
-ls -lh *.ts | awk '{print $9" "$5}' | chartscii -c auto -t "File Sizes"
-
-# Disk usage by mount point
-df -h | awk 'NR>1 {print $6" "$5}' | head -5 | chartscii -t "Disk Usage %"
-
-# Count files by extension
-find . -type f -name "*.ts" | wc -l | chartscii -t "TypeScript Files"
-
-# Count test results
-npm test 2>&1 | grep "passing" | awk '{print $1}' | chartscii -t "Tests Passing"
-```
-
-### Advanced Customization
-
-```bash
-# Custom scale
-chartscii 10 20 30 --scale 100 -t "Progress"
-
-# Naked mode (no borders)
-chartscii 1 2 3 -n -c red
-
-# Custom structure characters
-chartscii 1 2 3 -x "─" -y "│" -a "┃" -q "└"
-
-# Everything combined
-chartscii data.csv -c auto -f "░" -v -P '$' -V 0 -p -k pastel -t "Sales Report" -w 100
-```
-
-## Real-World Use Cases
-
-### DevOps & Monitoring
-
-```bash
-# Disk usage by directory (full terminal width)
-du -sh */ | chartscii -w auto -c auto -t "Directory Sizes"
-
-# Docker container stats (if Docker installed)
-docker stats --no-stream --format "{{.Name}} {{.MemPerc}}" | chartscii -w auto -t "Container Memory"
-
-# Kubernetes pod CPU (if kubectl available)
-kubectl top pods | awk 'NR>1 {print $1" "$2}' | chartscii -c auto -t "Pod CPU"
-
-# System disk usage
-df -h | awk 'NR>1 {print $6" "$5}' | chartscii -t "Disk Usage"
-
-# Process count by user
-ps aux | awk 'NR>1 {print $1}' | sort | uniq -c | sort -rn | head -10 | chartscii -c blue
-```
-
-### Git Analytics
-
-```bash
-# Commits by date
-git log --format=%ad --date=short | head -20 | uniq -c | chartscii -c green -t "Commits by Date"
-
-# Files in repository by type
-find . -type f -name "*.ts" -o -name "*.js" -o -name "*.json" | \
-  sed 's/.*\.//' | sort | uniq -c | chartscii -c auto -t "Files by Type"
-
-# Lines of code by file
-wc -l src/*.ts | grep -v total | awk '{print $2" "$1}' | chartscii -t "Lines of Code"
-
-# Recent commit activity (last 10 commits)
-git log -10 --format=%ad --date=short | uniq -c | chartscii -c yellow -t "Recent Activity"
-```
-
-### File System Analysis
-
-```bash
-# Largest files in directory
-ls -lhS | awk 'NR>1 && NR<11 {print $9" "$5}' | chartscii -c auto -t "Largest Files"
-
-# Directory sizes sorted
-du -sh */ | sort -hr | head -10 | chartscii -c auto -t "Top Directories"
-
-# File count by directory
-find . -maxdepth 1 -type d | while read d; do echo "$d $(find "$d" -type f | wc -l)"; done | \
-  tail -n +2 | chartscii -t "Files per Directory"
-
-# Code vs test file sizes
-du -sh src/*.ts | grep -v test | chartscii -c green -t "Source Files" && \
-du -sh src/*.test.ts | chartscii -c red -t "Test Files"
-```
-
-### Development Workflow
-
-```bash
-# Test results
-npm test 2>&1 | grep "passing" | awk '{print "Passing "$1}' | chartscii -c green
-
-# Package.json dependencies count
-cat package.json | jq -r '.dependencies | keys[]' | wc -l | chartscii -t "Dependencies"
-
-# TypeScript files count
-find . -name "*.ts" -not -path "./node_modules/*" | wc -l | chartscii -t "TS Files"
-
-# Build output sizes
-ls -lh dist/ 2>/dev/null | awk 'NR>1 {print $9" "$5}' | chartscii -c auto -t "Build Artifacts"
-
-# Git branches count
-git branch | wc -l | chartscii -t "Local Branches"
-```
-
-### Data Analysis (with external data)
-
-```bash
-# CSV column analysis
-cat data.csv | cut -d, -f2 | chartscii -p -t "Sales Distribution"
-
-# JSON parsing
-echo '[{"value":10},{"value":20},{"value":30}]' | jq '.[].value' | chartscii -t "JSON Data"
-
-# Generate sequence and chart
-seq 10 | awk '{print $1*$1}' | chartscii -t "Squares" -c purple
-
-# Random data visualization
-for i in {1..10}; do echo $((RANDOM % 100)); done | chartscii -c auto -t "Random Data"
-```
-
-## Data Format Support
-
-chartscii automatically detects and parses multiple formats:
-
-### Plain Numbers
-```bash
-chartscii 1 2 3 4 5
-echo "10 20 30" | chartscii
-seq 1 100 | chartscii
-```
-
-### Size Suffixes (K, M, G, T)
-```bash
-echo "8.0K 44M 1.2G" | chartscii
-du -sh * | chartscii  # Automatically handles sizes
-```
-
-### Label + Number
-```bash
-echo -e "Item1 10\nItem2 20\nItem3 30" | chartscii
-ps aux | awk '{print $11" "$4}' | chartscii
-```
-
-### Number + Label
-```bash
-echo -e "10 Item1\n20 Item2\n30 Item3" | chartscii
-du -sh * | chartscii  # Handles "8.0K filename" format
-```
-
-### Mixed String/Number
-```bash
-echo -e "Price: $99.99\nCost: $149.99" | chartscii  # Extracts numbers
-```
-
-### Stacked Values (v4)
-
-Multiple formats supported for stacked bar charts:
-
-**CSV formats:**
-```csv
-Label,[100, 50, 30]    # Array notation
-Label,100|50|30        # Pipe-separated
-Label,"100 50 30"      # Space-separated in quotes
-Label,100,50,30        # Multiple columns
-```
-
-**Text formats:**
-```bash
-echo "Label 100|50|30" | chartscii -I red green blue
-echo "Label [100, 50, 30]" | chartscii -I red green blue
-echo "100|50|30 Label" | chartscii -I red green blue
-```
-
-**JSON format:**
 ```json
 [
-  {
-    "label": "Q1",
-    "value": [100, 50, 30],
-    "color": ["red", "green", "blue"]
-  }
+  { "label": "Jan", "value": 100, "color": "blue" },
+  { "label": "Feb", "value": 150 }
 ]
-cat report.txt | chartscii  # Finds numbers in any text
 ```
 
-## Tips & Tricks
+For **multi-series** line / step / scatter, use `InputData[][]` — one inner array per data point, one entry per series:
 
-### Shell Aliases
-Add to your `.bashrc` or `.zshrc`:
-
-```bash
-alias chart="chartscii"
-alias vchart="chartscii -o vertical"
-alias pchart="chartscii -p"
-alias autochart="chartscii -c auto"
+```json
+[
+  [{"label":"Jan","value":10}, {"label":"Jan","value":20}, {"label":"Jan","value":5}],
+  [{"label":"Feb","value":15}, {"label":"Feb","value":12}, {"label":"Feb","value":8}]
+]
 ```
 
-### Watch Mode for Live Data
-```bash
-# Monitor file count in real-time
-watch -n 1 "find . -name '*.ts' | wc -l | chartscii -t 'TS Files'"
+For **candlestick**, value is `[open, high, low, close]`:
 
-# Track disk usage
+```json
+[
+  [42100, 42850, 41800, 42600],
+  [42600, 43200, 42400, 43050]
+]
+```
+
+---
+
+## Styling
+
+### Colors
+
+`-c` / `--color` accepts a lot of shapes — chartscii infers from context:
+
+| Form | Example | Used by |
+|---|---|---|
+| Named / hex / ANSI | `-c green`, `-c "#ff8800"`, `-c 196` | any |
+| `auto` | `-c auto` | any (cycles palette) |
+| Gradient string | `-c "gradient(red,yellow,green)"` | any |
+| Gradient with direction / reverse | `-c "gradient(cyan,pink:vertical:reverse)"` | any |
+| Comma list (per-series) | `-c "red,green,blue"` | line / step / scatter |
+| Comma pair (bull/bear) | `-c "green,red"` | candlestick |
+| Status map | `-c "0:red,1:green,2:yellow"` | status |
+
+```bash
+chartscii 1 2 3 4 5 6 7 8 9 10 -c "gradient(red,yellow,green)" -t "Gradient"
+```
+
+![gradient-theme](examples/svgs/gradient-theme.svg)
+
+Combine with `-G auto` to gradient-fill the empty space too:
+
+```bash
+seq 1 12 | chartscii -o vertical -c "gradient(purple,cyan)" -f "░" -G auto -w auto
+```
+
+![direction](examples/svgs/direction.svg)
+
+### Themes
+
+```bash
+chartscii --list-themes
+```
+
+> default · pastel · lush · standard · beach · nature · neon · spring · pinkish · crayons · sunset · rufus · summer · autumn · mint · vintage · sport · rainbow · pool · champagne
+
+```bash
+chartscii examples/example.csv -c auto -p --no-sort -k beach
+```
+
+![beach-theme](examples/svgs/csv.svg)
+
+### Fills, structure, alignment
+
+```bash
+# opt-in fill character (▒ by default, custom if a value is given)
+chartscii 10 20 30 -f "░" -G blue
+
+# bar alignment (horizontal: top/center/bottom/justify)
+chartscii 10 20 30 -E center -h 10
+
+# vertical alignment (left/center/right/justify)
+chartscii 10 20 30 -o vertical -E center -w 60
+
+# strip the box characters
+chartscii 1 2 3 -n -c red
+
+# customize the box characters
+chartscii 1 2 3 -x "─" -y "│" -a "┃" -q "└"
+```
+
+### Value labels
+
+```bash
+# show the raw value next to each bar
+chartscii 100 250 500 -v
+
+# with a currency prefix and three decimals
+chartscii 1.234 5.678 9.012 -v -P '€' -V 3
+
+# percentage labels, naturally
+chartscii data.csv -p
+```
+
+![value-labels](examples/svgs/gradient-value-labels.svg)
+
+### Custom label format
+
+`-L` / `--label-format` and `-F` / `--value-label-format` accept a template with `{label}` / `{value}`:
+
+```bash
+chartscii data.csv -L "[{label}]" -F "{value}€"
+```
+
+---
+
+## Stacked bars
+
+Three input formats, one renderer. Auto colors kick in if you don't pass `-I`.
+
+```bash
+echo -e "Q1 100|50|30\nQ2 120|60|40\nQ3 90|70|50" | \
+  chartscii -I red green blue -J Frontend Backend DevOps -K
+```
+
+JSON form with per-segment color overrides:
+
+```bash
+chartscii examples/example-stacked-color-overrides.json -I marine pink purple -k pastel
+```
+
+![stacked-override](examples/svgs/stacked-override.svg)
+
+---
+
+## Animation
+
+Add `-e` to any chart to animate it. Bar charts grow from zero; line / step / scatter / candlestick / status reveal left-to-right.
+
+```bash
+seq 1 30 | chartscii -e -X easeOut -W 1500
+```
+
+![animated](examples/svgs/animated.svg)
+
+| Flag | Default | Description |
+|---|---|---|
+| `-e` / `--animate` | `false` | Turn animation on |
+| `-W` / `--animate-duration` | `1000` | Total duration in ms |
+| `-Z` / `--animate-fps` | `60` | Frames per second |
+| `-X` / `--animate-easing` | `easeOut` | `linear`, `easeIn`, `easeOut`, `easeInOut` |
+| `-Q` / `--animate-step` | — | Step size 0–1 (overrides FPS when set) |
+
+---
+
+## Recipes & shell helpers
+
+A handful of pipelines worth keeping around. Drop these into your `.bashrc` / `.zshrc`:
+
+```bash
+# Bigger directories first, full terminal width
+alias dirsize='du -sh */ | sort -rh | chartscii -w auto -c auto -t "Directory Sizes"'
+
+# Code churn over the last 10 commits — green = additions, red = deletions
+alias churn='git log --pretty=format:"%h" --numstat -10 | \
+  awk "NF==3 {plus+=\$1; minus+=\$2} NF==1 {if(h) print h\" \"plus\"|\"minus; h=\$1; plus=0; minus=0} END {print h\" \"plus\"|\"minus}" | \
+  chartscii -k pastel -I green red -c auto --no-sort'
+
+# Files-by-extension across the repo
+alias filetypes='find . -type f -not -path "*/node_modules/*" -not -path "*/.git/*" | \
+  sed "s/.*\.//" | sort | uniq -c | sort -nr | head -10 | \
+  chartscii -c "gradient(cyan,magenta)" -v'
+
+# Memory hogs — top 5 processes by RSS
+alias topmem='ps aux | sort -rn -k 6 | head -5 | \
+  awk "{rss=\$6/1024; split(\$11,a,\"/\"); name=a[length(a)]; sub(/^-/,\"\",name); printf \"%s %d\n\", name, rss}" | \
+  chartscii -c "gradient(green,red)" -k beach -v'
+
+# Quick bar / vertical / percentage variants
+alias chart='chartscii'
+alias vchart='chartscii -o vertical'
+alias pchart='chartscii -p'
+alias autochart='chartscii -c auto'
+```
+
+A few showstoppers worth running once:
+
+```bash
+# Code churn — instant signal on whether a stretch was building or refactoring
+git log --pretty=format:"%h" --numstat -10 | \
+awk 'NF==3 {plus+=$1; minus+=$2} NF==1 {if(h) print h" "plus"|"minus; h=$1; plus=0; minus=0} END {print h" "plus"|"minus}' | \
+chartscii -J -k pastel -I green red -c auto --no-sort
+```
+
+![code-churn](examples/svgs/code-churn.svg)
+
+```bash
+# Repo file distribution
+find . -type f -not -path '*/.*' -not -path './node_modules/*' | \
+sed 's/.*\.//' | sort | uniq -c | sort -nr | head -n 10 | \
+chartscii -c "gradient(cyan,magenta)" -v
+```
+
+![file-distro](examples/svgs/file-distro.svg)
+
+```bash
+# File sizes from `ls -lh`
+ls -lh | awk '{print $9" "$5}' | chartscii -c auto
+```
+
+![file-size](examples/svgs/file-size.svg)
+
+### Live dashboards with `watch`
+
+```bash
 watch -n 5 "du -sh */ | chartscii -c auto -t 'Directory Sizes'"
-
-# Monitor git commits over time
-watch -n 10 "git log --oneline | wc -l | chartscii -t 'Total Commits'"
+watch -n 1 "find . -name '*.ts' | wc -l | chartscii -t 'TS Files'"
 ```
 
-### Dashboard with tmux
-```bash
-#!/bin/bash
-# Create a monitoring dashboard
+---
 
-tmux new-session -d -s chart-dash
+## Options reference
 
-# Split into 3 panes
-tmux split-window -h
-tmux split-window -v
+### Chart type
 
-# Disk usage
-tmux send-keys -t 0 'watch -n 5 "du -sh */ | head -5 | chartscii -c auto -t Disk"' C-m
+| Short | Long | Default | Description |
+|---|---|---|---|
+| `-Y` | `--type` | `bar` | `bar`, `line`, `step`, `scatter`, `candlestick`, `status` |
+| `-N` | `--variant` | `sharp` | Step corner style: `sharp` or `smooth` |
+| `-O` | `--points` | `false` | Draw a marker at each point on step charts |
+| `-H` | `--point-char` | `●` | Override the marker character |
+| `-R` | `--rich-labels` | `true` | Enable styl3 decorators (`*bold*`, `%italic%`, `!underline!`, `@invert@`) |
+| `-g` | `--legend` | `false` | Show a legend (multi-series line/step/scatter, candlestick, status) |
+| `-B` | `--legend-position` | `top` | `top` or `bottom` |
+| `-M` | `--legend-align` | `left` | `left`, `center`, `right` |
+| `-U` | `--legend-values` | — | Legend entry labels (space-separated) |
 
-# File counts
-tmux send-keys -t 1 'watch -n 5 "find . -maxdepth 1 -type f | wc -l | chartscii -t Files"' C-m
+### Display
 
-# Git activity
-tmux send-keys -t 2 'watch -n 10 "git log --oneline -10 | wc -l | chartscii -t Commits"' C-m
+| Short | Long | Default | Description |
+|---|---|---|---|
+| `-t` | `--title` | — | Chart title |
+| `-T` | `--title-color` | — | Title color (or `gradient` to match the chart gradient) |
+| `-A` | `--title-align` | `left` | `left`, `center`, `right` |
+| `-D` | `--title-padding` | — | CSS-style padding: `n`, `v,h`, or `top,right,bottom,left` |
+| `-l` | `--labels` | `true` | Display labels |
+| `-C` | `--color-labels` | `true` | Color the labels |
+| `-p` | `--percentage` | `false` | Display percentages |
+| `-v` | `--value-labels` | `false` | Show values on bars |
+| `-P` | `--value-labels-prefix` | — | Prefix (e.g. `$`, `€`) |
+| `-V` | `--value-labels-floating-point` | `2` | Decimal places |
+| `-L` | `--label-format` | — | Template with `{label}` placeholder |
+| `-F` | `--value-label-format` | — | Template with `{value}` placeholder |
 
-tmux attach -t chart-dash
-```
+### Layout
 
-### Combine with fzf
-```bash
-# Interactive file selection and visualization
-find . -name "*.log" | fzf | xargs cat | grep ERROR | chartscii -c red
-```
+| Short | Long | Default | Description |
+|---|---|---|---|
+| `-o` | `--orientation` | `horizontal` | `horizontal` or `vertical` |
+| `-w` | `--width` | `80` | Number, or `auto` for terminal width |
+| `-h` | `--height` | `1` (bar) / `10` (other) | Number, or `auto` for terminal height |
+| `-b` | `--bar-size` | — | Bar / candle / status-cell thickness |
+| `-d` | `--padding` | `1` | Space between bars / cells |
+| `-E` | `--align-bars` | — | `top`/`center`/`bottom`/`justify` (horizontal) or `left`/`center`/`right`/`justify` (vertical) |
 
-### One-liner Scripts
-```bash
-# Top 10 largest directories
-du -sh */ | sort -rh | head -10 | chartscii -c auto -t "Top Directories"
+### Styling
 
-# Count files by extension
-find . -type f | sed 's/.*\.//' | sort | uniq -c | sort -rn | head -10 | chartscii -c auto -t "Files by Type"
+| Short | Long | Default | Description |
+|---|---|---|---|
+| `-c` | `--color` | — | See the [Colors](#colors) table for accepted forms |
+| `-k` | `--theme` | — | Theme name (run `--list-themes` for the list) |
+| `-z` | `--char` | `█` | Character used for bars |
+| `-f` | `--fill` | — | Opt-in fill character (`▒` if flag alone, custom if value) |
+| `-G` | `--fill-color` | — | Fill color, or `auto` to match the chart gradient |
+| `-S` | `--scale` | `auto` | `auto`, `relative`, `relative-zero`, or fixed number |
 
-# Repository line counts
-wc -l src/*.ts | grep -v total | sort -rn -k1 | head -10 | awk '{print $2" "$1}' | chartscii -c green -t "Largest Files"
+### Structure
 
-# Recent git activity
-git log --since="7 days ago" --format=%ad --date=short | sort | uniq -c | chartscii -c yellow -t "Commits This Week"
+| Short | Long | Default | Description |
+|---|---|---|---|
+| `-n` | `--naked` | `false` | Hide structure characters |
+| `-x` | `--structure-x` | `═` | Horizontal axis character |
+| `-y` | `--structure-y` | `╢` | Y-axis character |
+| `-a` | `--structure-axis` | `║` | Vertical axis character |
+| `-q` | `--structure-bottom-left` | `╚` | Bottom-left corner character |
 
-# Generate Fibonacci sequence
-echo "1 1 2 3 5 8 13 21 34 55" | tr ' ' '\n' | chartscii -t "Fibonacci" -c purple
+### Data
 
-# Process distribution (top users)
-ps aux | awk 'NR>1 {print $1}' | sort | uniq -c | sort -rn | head -5 | npx chartscii -c blue -t "Processes by User"
-```
+| Short | Long | Default | Description |
+|---|---|---|---|
+| `-s` | `--sort` | `true` for bar / `false` otherwise | Sort data |
+| `-r` | `--reverse` | `false` | Reverse the order |
 
-## API
+### Stacked bars
 
-chartscii-cli is built on [chartscii](https://github.com/tool3/chartscii), a powerful charting library. You can use chartscii programmatically in your Node.js projects:
+| Short | Long | Default | Description |
+|---|---|---|---|
+| `-I` | `--stack-colors` | — | Per-segment colors (space-separated) |
+| `-J` | `--stack-labels` | — | Per-segment labels |
+| `-K` | `--stack-value-labels` | `false` | Show segment values on bars (auto-enables `-v`) |
 
-```javascript
-const Chartscii = require('chartscii');
+### Animation
 
-const chart = new Chartscii([1, 2, 3, 4, 5], {
-  title: 'My Chart',
-  color: 'green'
-});
+| Short | Long | Default | Description |
+|---|---|---|---|
+| `-e` | `--animate` | `false` | Turn animation on |
+| `-W` | `--animate-duration` | `1000` | Duration in ms |
+| `-Z` | `--animate-fps` | `60` | Frames per second |
+| `-X` | `--animate-easing` | `easeOut` | `linear`, `easeIn`, `easeOut`, `easeInOut` |
+| `-Q` | `--animate-step` | — | Step size 0–1 (overrides FPS when set) |
 
-console.log(chart.create());
-```
+### Utility
+
+| Short | Long | Default | Description |
+|---|---|---|---|
+| `-m` | `--list-themes` | `false` | Print all available themes |
+| `-?` | `--help` | — | Show help |
+|  | `--version` | — | Show version |
+
+---
+
+## Notes
+
+- **Width on horizontal charts** is exact: `-w 80` produces output that fits in 80 columns, gutters and structure included.
+- **Width on vertical charts** is approximate — for precise control, set `-b` (bar thickness) and `-d 0` (no padding) explicitly.
+- **`--sort` defaults to off for non-bar chart types**, since they're already ordered along the x-axis (time series, OHLC, host roster). Pass `-s` to opt in.
+
+Built on [chartscii](https://github.com/tool3/chartscii) — see that repo for the programmatic API.
 
 ## License
 
 MIT © [Tal Hayut](https://github.com/tool3)
-
