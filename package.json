@@ -1,6 +1,6 @@
 {
   "name": "chartscii-cli",
-  "version": "4.0.0",
+  "version": "3.0.0",
   "description": "Transform data into beautiful terminal charts. Simple, fast, and powerful.",
   "main": "./dist/cli.js",
   "types": "./dist/cli.d.ts",
