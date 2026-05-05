@@ -4,7 +4,7 @@
 
 `chartscii data.csv -c auto`
 
-![csv](examples/svgs/csv.svg)
+![csv](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/csv.svg?raw=true)
 
 ### Beautiful ASCII charts straight from your shell.
 
@@ -20,13 +20,13 @@ Pipe any data — numbers, CSV, JSON, `du`, `git log`, anything — and get a be
 
 ## What's new
 
-- ✅ **Smart content parsing** — auto-detects JSON, CSV, plain numbers, label+value pairs (in either order), size suffixes (`K`/`M`/`G`/`T` from `du -sh`), and numbers buried in strings (`$1,500`, `Price: 99.99`)
-- ✅ **Auto width & height** — `-w auto` / `-h auto` snaps to your terminal dimensions; on horizontal charts, `-w 80` produces output that *actually* fits in 80 columns (gutters and structure included)
-- ✅ **Auto file detection** — pass the path directly (`chartscii data.csv`), no `--file` flag needed
-- ✅ **CLI-friendly color shorthand** — `-c "red,green,blue"` for per-series, `-c "0:red,1:green"` for status maps, `-c "gradient(red,blue:vertical:reverse)"` for gradients — all parsed from one flag
-- ✅ **Type-aware defaults** — `--sort` defaults off and `--height` jumps to 10 for non-bar chart types, so `-Y line` / `-Y candlestick` / `-Y status` look right out of the box
-- ✅ **Six chart types from one binary** — `bar`, `line`, `step`, `scatter`, `candlestick`, `status` — switch with `-Y`
-- ✅ **Pipe-first design** — works with `du`, `git log`, `ps`, `find`, `wc`, `awk` output, or anything else that emits text on stdout
+- ✅ **Smart content parsing** — auto-detects JSON, CSV, plain numbers, label+value pairs (in either order).
+- ✅ **Auto width & height** — `-w auto` / `-h auto` snaps to your terminal dimensions.
+- ✅ **Auto file detection** — pass the path directly (`chartscii data.csv`).
+- ✅ **CLI-friendly color shorthand** — `-c "red,green,blue"` for per-series, `-c "0:red,1:green"` for status.
+- ✅ **Type-aware defaults** — `--sort` defaults off and `--height` jumps to 10 for non-bar chart types.
+- ✅ **Six chart types from one binary** — `bar`, `line`, `step`, `scatter`, `candlestick`, `status`.
+- ✅ **Pipe-first design** — works with `du`, `git log`, `ps`, `find`, `wc`, `awk` output.
 
 ---
 
@@ -102,7 +102,7 @@ du -sh * | chartscii -c auto
 
 That's it — point any data source at `chartscii` and you get a chart.
 
-![json](examples/svgs/json.svg)
+![json](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/json.svg?raw=true)
 
 ---
 
@@ -125,7 +125,7 @@ Switch the renderer with `-Y` / `--type`. Every type shares the core options (`-
 chartscii examples/example.json -k pastel
 ```
 
-![bar](examples/svgs/json.svg)
+![bar](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/json.svg?raw=true)
 
 Vertical orientation with a gradient fill:
 
@@ -133,7 +133,7 @@ Vertical orientation with a gradient fill:
 seq 1 12 | chartscii -o vertical -c "gradient(cyan,purple)" -f "░" -G auto -w auto
 ```
 
-![vertical-gradient](examples/svgs/vertical-reverse-gradient.svg)
+![vertical-gradient](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/vertical-reverse-gradient.svg?raw=true)
 
 ### Line
 
@@ -144,7 +144,7 @@ echo "20 35 28 50 65 45 70 60 85 75 90 80" | \
   chartscii -Y line -c "gradient(cyan,purple)" -t "Monthly Trend" -w 80
 ```
 
-![line](examples/svgs/line.svg)
+![line](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/line.svg?raw=true)
 
 **Multi-series** — pipe a JSON `InputData[][]` (one inner array per data point, one entry per series) and split colors on commas. Add `-g` for a legend, `-U` to label the entries:
 
@@ -155,7 +155,7 @@ chartscii series.json -Y line \
   -w 100
 ```
 
-![line-multi](examples/svgs/line-multi.svg)
+![line-multi](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/line-multi.svg?raw=true)
 
 ### Step
 
@@ -166,7 +166,7 @@ echo "10 25 25 40 30 30 55 50 70 65" | \
   chartscii -Y step -N smooth -O -c "gradient(orange,pink)" -t "Step Smooth" -w 80
 ```
 
-![step](examples/svgs/step.svg)
+![step](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/step.svg?raw=true)
 
 ### Scatter
 
@@ -177,7 +177,7 @@ echo "12 45 28 65 30 80 55 22 70 90 35 50 60 18" | \
   chartscii -Y scatter -c auto -H "◈" -t "Distribution" -w 80
 ```
 
-![scatter](examples/svgs/scatter.svg)
+![scatter](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/scatter.svg?raw=true)
 
 ### Candlestick
 
@@ -189,7 +189,7 @@ chartscii btc-month.json -Y candlestick \
   -t "BTC/USD — 30d" -w 160 -h 22 -b 2 -d 2
 ```
 
-![candlestick](examples/svgs/candlestick.svg)
+![candlestick](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/candlestick.svg?raw=true)
 
 ### Status
 
@@ -202,7 +202,7 @@ chartscii fleet.json -Y status \
   -t "Fleet Status" -w 100 -b 4
 ```
 
-![status](examples/svgs/status.svg)
+![status](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/status.svg?raw=true)
 
 For **row mode** (one labelled row per host, cells along the x-axis), give each input point a `value: number[]` instead of a single key.
 
@@ -237,7 +237,7 @@ echo -e "10 Item1\n20 Item2\n30 Item3" | chartscii   # number first
 du -sh * | chartscii -c auto -k pastel
 ```
 
-![file-count](examples/svgs/file-count.svg)
+![file-count](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/file-count.svg?raw=true)
 
 ### Mixed strings
 
@@ -247,7 +247,7 @@ Numbers are extracted from any text — `$1,500`, `Price: 99.99`, `12.99$`.
 cat sales.txt | chartscii -c auto
 ```
 
-![sales](examples/svgs/sales.svg)
+![sales](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/sales.svg?raw=true)
 
 ### CSV
 
@@ -270,7 +270,7 @@ Go,32,8,4
 chartscii examples/example-stacked.csv -c auto -p -k sport
 ```
 
-![stacked-csv](examples/svgs/stacked-csv.svg)
+![stacked-csv](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/stacked-csv.svg?raw=true)
 
 ### JSON
 
@@ -327,7 +327,7 @@ For **candlestick**, value is `[open, high, low, close]`:
 chartscii 1 2 3 4 5 6 7 8 9 10 -c "gradient(red,yellow,green)" -t "Gradient"
 ```
 
-![gradient-theme](examples/svgs/gradient-theme.svg)
+![gradient-theme](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/gradient-theme.svg?raw=true)
 
 Combine with `-G auto` to gradient-fill the empty space too:
 
@@ -335,7 +335,7 @@ Combine with `-G auto` to gradient-fill the empty space too:
 seq 1 12 | chartscii -o vertical -c "gradient(purple,cyan)" -f "░" -G auto -w auto
 ```
 
-![direction](examples/svgs/direction.svg)
+![direction](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/direction.svg?raw=true)
 
 ### Themes
 
@@ -349,7 +349,7 @@ chartscii --list-themes
 chartscii examples/example.csv -c auto -p --no-sort -k beach
 ```
 
-![beach-theme](examples/svgs/csv.svg)
+![beach-theme](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/csv.svg?raw=true)
 
 ### Fills, structure, alignment
 
@@ -383,7 +383,7 @@ chartscii 1.234 5.678 9.012 -v -P '€' -V 3
 chartscii data.csv -p
 ```
 
-![value-labels](examples/svgs/gradient-value-labels.svg)
+![value-labels](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/gradient-value-labels.svg?raw=true)
 
 ### Custom label format
 
@@ -420,7 +420,7 @@ JSON form with per-segment color overrides:
 chartscii examples/example-stacked-color-overrides.json -I marine pink purple -k pastel
 ```
 
-![stacked-override](examples/svgs/stacked-override.svg)
+![stacked-override](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/stacked-override.svg?raw=true)
 
 ---
 
@@ -432,7 +432,7 @@ Add `-e` to any chart to animate it. Bar charts grow from zero; line / step / sc
 seq 1 30 | chartscii -e -X easeOut -W 1500
 ```
 
-![animated](examples/svgs/animated.svg)
+![animated](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/animated.svg?raw=true)
 
 | Flag | Default | Description |
 |---|---|---|
@@ -483,7 +483,7 @@ awk 'NF==3 {plus+=$1; minus+=$2} NF==1 {if(h) print h" "plus"|"minus; h=$1; plus
 chartscii -J -k pastel -I green red -c auto --no-sort
 ```
 
-![code-churn](examples/svgs/code-churn.svg)
+![code-churn](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/code-churn.svg?raw=true)
 
 ```bash
 # Repo file distribution
@@ -492,14 +492,14 @@ sed 's/.*\.//' | sort | uniq -c | sort -nr | head -n 10 | \
 chartscii -c "gradient(cyan,magenta)" -v
 ```
 
-![file-distro](examples/svgs/file-distro.svg)
+![file-distro](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/file-distro.svg?raw=true)
 
 ```bash
 # File sizes from `ls -lh`
 ls -lh | awk '{print $9" "$5}' | chartscii -c auto
 ```
 
-![file-size](examples/svgs/file-size.svg)
+![file-size](https://github.com/tool3/chartscii-cli/blob/master/examples/svgs/file-size.svg?raw=true)
 
 ### Live dashboards with `watch`
 
