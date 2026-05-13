@@ -7,7 +7,7 @@ export function getDefaults(): CustomizationOptions {
     labels: true,
     colorLabels: true,
     percentage: false,
-    sort: true,
+    sort: false,
     reverse: false,
     naked: false,
     char: '█',
