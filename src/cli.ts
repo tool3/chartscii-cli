@@ -205,7 +205,6 @@ function createParser() {
       alias: 'd',
       type: 'number',
       description: 'Padding between bars',
-      default: 1,
     })
 
     .option('color', {

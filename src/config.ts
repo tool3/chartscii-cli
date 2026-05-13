@@ -4,7 +4,6 @@ export function getDefaults(): CustomizationOptions {
   return {
     orientation: 'horizontal',
     width: 80,
-    padding: 1,
     labels: true,
     colorLabels: true,
     percentage: false,
@@ -117,6 +116,15 @@ export function buildOptions(options: Partial<CustomizationOptions>): Customizat
   const type = (config as any).type;
   if (type && type !== 'bar' && (clean as any).sort === undefined) {
     config.sort = false;
+  }
+
+  // Default padding only for bar charts. For candlestick, any defined
+  // padding switches the formatter to fixed-slot mode and `width` is
+  // ignored — so leaving padding undefined lets it auto-fill to width.
+  // line / step / scatter don't consume padding; status has its own
+  // ?? 1 fallback in the lib.
+  if (config.padding === undefined && (!type || type === 'bar')) {
+    config.padding = 1;
   }
 
   return config as CustomizationOptions;
