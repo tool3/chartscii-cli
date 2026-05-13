@@ -1,6 +1,6 @@
 {
   "name": "chartscii-cli",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "Transform data into beautiful terminal charts. Simple, fast, and powerful.",
   "main": "./dist/cli.js",
   "types": "./dist/cli.d.ts",
@@ -44,7 +44,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "chartscii": "^4.0.2",
+    "chartscii": "^4.0.3",
     "yargs": "^16.0.3"
   },
   "devDependencies": {
